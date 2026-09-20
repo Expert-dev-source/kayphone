@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#07070b">
+<meta name="description" content="KayPhone OS — a polished interactive phone experience for the web.">
+<title>KayPhone OS Pro Max</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="css/style.css">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.open-meteo.com https://ipapi.co https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; frame-src https://www.google.com;">
+</head>
+<body>
+<div class="device-container">
+<div class="device-frame">
+  <div class="side-btn vol-up" id="btnVolUp" title="Volume Up"></div>
+  <div class="side-btn vol-down" id="btnVolDown" title="Volume Down"></div>
+  <div class="side-btn power" id="btnPower" title="Power"></div>
+  <div class="side-btn action" id="btnAction" title="Action"></div>
+  <div class="phone" id="phone">
+    <div class="dynamic-island" id="dynamicIsland" onclick="expandIsland()" role="button" aria-label="Dynamic Island notifications" tabindex="0">
+      <div class="di-content active" id="diDefault"><div style="width:8px;height:8px;background:var(--ios-green);border-radius:50%;"></div></div>
+      <div class="di-content" id="diMusic">
+        <div class="di-icon" style="background:linear-gradient(135deg,var(--ios-purple),var(--ios-pink));">🎵</div>
+        <div><div class="di-text" id="diMusicTitle">Music</div><div class="di-sub" id="diMusicArtist">Tap to expand</div></div>
+      </div>
+      <div class="di-content" id="diTimer">
+        <div class="di-icon" style="background:var(--ios-orange);">⏱</div>
+        <div><div class="di-text" id="diTimerText">00:00</div></div>
+      </div>
+      <div class="di-content" id="diCall">
+        <div class="di-icon" style="background:var(--ios-green);">📞</div>
+        <div><div class="di-text">Incoming Call</div><div class="di-sub">Mom</div></div>
+      </div>
+      <div class="di-expanded-body" id="diExpanded">
+        <div style="text-align:center;padding:20px 0;">
+          <div style="font-size:48px;margin-bottom:12px;" id="diExpandedIcon">🎵</div>
+          <div style="font-size:18px;font-weight:700;" id="diExpandedTitle">Title</div>
+          <div style="font-size:14px;color:var(--ios-text-secondary);margin-top:4px;" id="diExpandedSub">Subtitle</div>
+          <div style="display:flex;justify-content:center;gap:30px;margin-top:20px;">
+            <div style="width:50px;height:50px;border-radius:50%;background:var(--ios-gray4);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;" onclick="islandAction('prev')">⏮</div>
+            <div style="width:50px;height:50px;border-radius:50%;background:#fff;color:#000;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;" onclick="islandAction('play')" id="diPlayBtn">▶</div>
+            <div style="width:50px;height:50px;border-radius:50%;background:var(--ios-gray4);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;" onclick="islandAction('next')">⏭</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- BOOT SCREEN -->
+    <div id="bootScreen" style="position:absolute;inset:0;z-index:5000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#000;overflow:hidden;">
+      <!-- Animated background gradient -->
+      <div id="bootBg" style="position:absolute;inset:0;opacity:0;transition:opacity 1.5s ease;background:radial-gradient(ellipse at 50% 40%,#0d0d2e 0%,#000 70%);"></div>
+      <!-- Floating orbs -->
+      <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(10,132,255,0.15) 0%,transparent 70%);top:10%;left:50%;transform:translateX(-50%);animation:bootOrb 4s ease-in-out infinite;"></div>
+      <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(191,90,242,0.12) 0%,transparent 70%);bottom:20%;right:10%;animation:bootOrb 3s ease-in-out infinite reverse;"></div>
+      <!-- Logo container -->
+      <div id="bootLogo" style="position:relative;z-index:2;opacity:0;transform:scale(0.7);transition:opacity 0.7s ease,transform 0.7s cubic-bezier(0.34,1.56,0.64,1);margin-bottom:24px;">
+        <div id="bootLogoInner" style="width:100px;height:100px;border-radius:28px;background:linear-gradient(135deg,#0A84FF,#BF5AF2);display:flex;align-items:center;justify-content:center;font-size:52px;box-shadow:0 20px 60px rgba(10,132,255,0.4),0 0 0 1px rgba(255,255,255,0.1);animation:bootPulse 2s ease-in-out infinite 1.5s;">📱</div>
+        <!-- Spinning ring -->
+        <div id="bootRing" style="position:absolute;inset:-8px;border-radius:36px;border:2px solid transparent;border-top-color:rgba(10,132,255,0.6);border-right-color:rgba(191,90,242,0.4);opacity:0;animation:bootSpin 1.5s linear infinite;transition:opacity 0.3s;"></div>
+      </div>
+      <!-- Wordmark -->
+      <div id="bootWordmark" style="position:relative;z-index:2;text-align:center;opacity:0;transform:translateY(16px);transition:opacity 0.5s ease,transform 0.5s ease;">
+        <div id="bootName" style="font-size:34px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1;">KayPhone</div>
+        <div id="bootTag" style="font-size:12px;color:rgba(255,255,255,0.35);letter-spacing:3px;text-transform:uppercase;margin-top:6px;">PRO MAX</div>
+      </div>
+      <!-- Progress -->
+      <div id="bootBar" style="position:absolute;bottom:56px;width:160px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;opacity:0;transition:opacity 0.4s ease;">
+        <div id="bootProgress" style="height:100%;width:0%;background:linear-gradient(90deg,#0A84FF,#BF5AF2,#FF375F);border-radius:2px;transition:width 2.4s cubic-bezier(0.4,0,0.2,1);"></div>
+      </div>
+      <div style="position:absolute;bottom:32px;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:1.5px;font-weight:500;">KAYPHONE OS 3.0</div>
+    </div>
+
+    <!-- SCREEN RECORDING INDICATOR -->
+    <div class="rec-indicator" id="recIndicator"></div>
+
+    <!-- NOTIFICATION BANNER (drops from top) -->
+    <div class="notif-banner" id="notifBanner" onclick="bannerTapped()">
+      <div class="notif-banner-icon" id="bannerIcon" style="background:var(--ios-blue);">💬</div>
+      <div class="notif-banner-body">
+        <div class="notif-banner-app" id="bannerApp">Messages</div>
+        <div class="notif-banner-title" id="bannerTitle">New Message</div>
+        <div class="notif-banner-msg" id="bannerMsg">You have a new message</div>
+      </div>
+    </div>
+
+    <!-- QUICK ACTION MENU -->
+    <div class="quick-menu" id="quickMenu"></div>
+
+    <!-- APP LIBRARY -->
+    <div class="app-library" id="appLibrary">
+      <div class="library-search">
+        <span style="font-size:18px;color:rgba(255,255,255,0.4);">🔍</span>
+        <input type="text" placeholder="App Library" id="librarySearch" oninput="filterLibrary()">
+      </div>
+      <div class="library-grid" id="libraryGrid"></div>
+    </div>
+
+    <!-- FOCUS MODE OVERLAY (subtle) -->
+    <div id="focusOverlay" style="position:absolute;bottom:100px;left:50%;transform:translateX(-50%);z-index:600;pointer-events:none;opacity:0;transition:opacity 0.3s;"></div>
+
+    <!-- VOLUME OVERLAY -->
+    <div id="volumeOverlay" style="position:absolute;top:80px;right:14px;background:rgba(28,28,30,0.9);backdrop-filter:blur(20px);border-radius:14px;padding:12px 10px;z-index:1500;opacity:0;pointer-events:none;transition:opacity 0.2s;min-width:44px;border:1px solid rgba(255,255,255,0.1);">
+      <div style="font-size:16px;text-align:center;margin-bottom:8px;" id="volIcon">🔊</div>
+      <div style="width:6px;height:100px;background:rgba(255,255,255,0.15);border-radius:3px;margin:0 auto;position:relative;overflow:hidden;">
+        <div id="volBar" style="position:absolute;bottom:0;width:100%;background:linear-gradient(180deg,#64D2FF,#0A84FF);border-radius:3px;transition:height 0.15s;"></div>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);text-align:center;margin-top:8px;" id="volPct">75%</div>
+    </div>
+
+    <!-- POWER MENU -->
+    <div id="powerMenu" style="position:absolute;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(30px);z-index:4000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+      <div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:10px;">Power Options</div>
+      <!-- Slide to power off -->
+      <div style="width:280px;height:64px;background:rgba(255,255,255,0.1);border-radius:32px;border:1px solid rgba(255,255,255,0.15);position:relative;overflow:hidden;display:flex;align-items:center;padding:0 8px;" id="powerOffSlider">
+        <div id="powerOffThumb" style="width:50px;height:50px;border-radius:25px;background:linear-gradient(135deg,#FF453A,#FF375F);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:grab;flex-shrink:0;box-shadow:0 4px 16px rgba(255,69,58,0.4);user-select:none;">⏻</div>
+        <div style="flex:1;text-align:center;font-size:15px;font-weight:600;color:#fff;letter-spacing:0.5px;padding-left:8px;">slide to power off</div>
+      </div>
+      <!-- Slide for emergency -->
+      <div style="width:280px;height:64px;background:rgba(255,255,255,0.1);border-radius:32px;border:1px solid rgba(255,255,255,0.15);position:relative;overflow:hidden;display:flex;align-items:center;padding:0 8px;">
+        <div style="width:50px;height:50px;border-radius:25px;background:linear-gradient(135deg,#FF9F0A,#FFD60A);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex-shrink:0;box-shadow:0 4px 16px rgba(255,159,10,0.4);" onclick="showToast('🆘','Emergency SOS — this is a simulation')">🆘</div>
+        <div style="flex:1;text-align:center;font-size:15px;font-weight:600;color:#fff;letter-spacing:0.5px;">Emergency SOS</div>
+      </div>
+      <!-- Medical ID -->
+      <div style="width:280px;height:64px;background:rgba(255,255,255,0.1);border-radius:32px;border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;padding:0 18px;cursor:pointer;" onclick="showToast('❤️‍🩹','Medical ID: Kay Goold · Blood Type O+')">
+        <div style="font-size:22px;margin-right:14px;">❤️‍🩹</div>
+        <div style="font-size:15px;font-weight:600;color:#fff;">Medical ID</div>
+      </div>
+      <!-- Cancel -->
+      <div style="width:280px;height:64px;background:rgba(255,255,255,0.15);border-radius:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;font-weight:700;color:#fff;" onclick="closePowerMenu()">Cancel</div>
+    </div>
+
+        <div class="wallpaper" id="wallpaper" style="background-image:url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80');"></div>
+    <div class="flashlight-overlay" id="flashlightOverlay" onclick="toggleFlashlight()"><div class="flashlight-close">✕</div></div>
+
+    <!-- LOCK SCREEN -->
+    <div class="screen active" id="screen-lock">
+      <div class="screen-content lock-screen" id="lockScreenContent">
+        <div>
+          <div class="lock-time" id="lockTime">9:41</div>
+          <div class="lock-date" id="lockDate">Monday, July 28</div>
+          <div class="lock-widgets">
+            <div class="lock-widget" onclick="event.stopPropagation();openApp('weather');">
+              <div class="lock-widget-icon">⛅</div>
+              <div class="lock-widget-label">Weather</div>
+              <div class="lock-widget-value" id="lockWeatherTemp">--°</div>
+            </div>
+            <div class="lock-widget" onclick="event.stopPropagation();">
+              <div class="lock-widget-icon">🔋</div>
+              <div class="lock-widget-label">Battery</div>
+              <div class="lock-widget-value" id="lockBatteryPct">84%</div>
+            </div>
+          </div>
+          <!-- Lock screen notifications preview -->
+          <div id="lockNotifPreview" style="width:100%;margin-top:14px;display:flex;flex-direction:column;gap:8px;max-height:160px;overflow:hidden;"></div>
+          <!-- Face ID button - tap to scan -->
+          <div id="faceIdContainer" onclick="event.stopPropagation();startUnlock();" style="cursor:pointer;margin:24px 0;display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="position:relative;width:76px;height:76px;">
+              <!-- Outer glow ring -->
+              <div style="position:absolute;inset:-6px;border-radius:50%;background:radial-gradient(circle,rgba(48,209,88,0.15) 0%,transparent 70%);transition:opacity 0.3s;" id="faceGlow"></div>
+              <!-- Main circle -->
+              <div style="width:76px;height:76px;border-radius:50%;border:2px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);backdrop-filter:blur(10px);position:relative;" id="faceRingOuter">
+                <div style="font-size:36px;" id="faceIdIcon">👤</div>
+                <!-- Spinning arc - hidden until scanning -->
+                <svg id="faceArc" style="position:absolute;inset:-3px;opacity:0;transition:opacity 0.3s;" width="82" height="82" viewBox="0 0 82 82">
+                  <circle cx="41" cy="41" r="39" fill="none" stroke="#30D158" stroke-width="2.5" stroke-linecap="round"
+                    stroke-dasharray="80 165" transform="rotate(-90 41 41)">
+                    <animateTransform attributeName="transform" type="rotate" from="-90 41 41" to="270 41 41" dur="1.2s" repeatCount="indefinite"/>
+                  </circle>
+                </svg>
+              </div>
+            </div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.6);font-weight:500;" id="faceIdLabel">Face ID</div>
+          </div>
+        </div>
+        <div>
+          <div class="lock-hint" id="lockHint" style="cursor:pointer;" onclick="startUnlock()">Tap or Swipe Up to Unlock</div>
+          <div style="width:130px;height:5px;background:#fff;border-radius:3px;margin:0 auto;opacity:0.5;user-select:none;-webkit-user-select:none;pointer-events:none;box-shadow:0 0 10px rgba(255,255,255,0.3);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME SCREEN -->
+    <div class="screen" id="screen-home">
+      <div class="home-screen-container">
+        <div class="home-pages" id="homePages">
+          <div class="home-page" id="homePage1">
+            <div class="home-widgets">
+              <div class="widget-row">
+                <div class="widget widget-medium" onclick="openApp('weather')">
+                  <div class="widget-header">☀️ Weather</div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="widget-weather-icon" id="widgetWeatherIcon">☀️</span>
+                    <span class="widget-value" id="widgetWeatherTemp">--°</span>
+                  </div>
+                  <div class="widget-sub" id="widgetWeatherCond">Partly Cloudy</div>
+                </div>
+                <div class="widget widget-small" onclick="openApp('battery')">
+                  <div class="widget-header">🔋</div>
+                  <div class="widget-value" id="widgetBattery">--%</div>
+                </div>
+                <div class="widget widget-small" onclick="openApp('music')">
+                  <div class="widget-header">🎵</div>
+                  <div style="font-size:24px;margin-top:4px;">▶</div>
+                </div>
+              </div>
+              <div class="widget-row">
+                <div class="widget widget-large" onclick="openApp('photos')">
+                  <div class="widget-header">🖼️ Photos</div>
+                  <div class="widget-photos" id="widgetPhotos">
+                    <div class="widget-photo" style="background:linear-gradient(135deg,var(--ios-purple),var(--ios-blue));"></div>
+                    <div class="widget-photo" style="background:linear-gradient(135deg,var(--ios-pink),var(--ios-orange));"></div>
+                    <div class="widget-photo" style="background:linear-gradient(135deg,var(--ios-teal),var(--ios-green));"></div>
+                    <div class="widget-photo" style="background:linear-gradient(135deg,var(--ios-red),var(--ios-yellow));"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="home-grid" id="homeGrid1"></div>
+          </div>
+          <div class="home-page" id="homePage2">
+            <div class="home-grid" id="homeGrid2"></div>
+          </div>
+          <div class="home-page" id="homePage3">
+            <div class="home-grid" id="homeGrid3"></div>
+          </div>
+        </div>
+        <div class="page-dots" id="pageDots">
+          <div class="page-dot active" data-page="0"></div>
+          <div class="page-dot" data-page="1"></div>
+          <div class="page-dot" data-page="2"></div>
+        </div>
+      </div>
+      <div class="dock" id="dock"></div>
+      <div class="home-bar" id="homeBar" onclick="goHome()"></div>
+    <!-- Gesture edge indicator - shows briefly on edge touch -->
+    <div id="gestureEdgeLeft" style="position:absolute;left:0;top:20%;bottom:20%;width:4px;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.3),transparent);border-radius:0 4px 4px 0;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:999;"></div>
+    </div>
+
+    <!-- APP SWITCHER -->
+    <div class="app-switcher" id="appSwitcher">
+      <div style="font-size:13px;color:var(--ios-text-secondary);margin-bottom:10px;">App Switcher</div>
+      <div class="switcher-cards" id="switcherCards"></div>
+    </div>
+
+    <!-- SPOTLIGHT -->
+    <div class="spotlight" id="spotlight">
+      <div class="spotlight-search">
+        <span style="font-size:18px;color:var(--ios-text-secondary);">🔍</span>
+        <input type="text" id="spotlightInput" placeholder="Search apps, notes, files..." oninput="searchSpotlight()">
+      </div>
+      <div class="spotlight-results" id="spotlightResults"></div>
+    </div>
+
+    <!-- APP VIEWS CONTAINER -->
+    <div id="appViews"></div>
+
+    <!-- CAMERA VIEW -->
+    <div class="camera-view" id="cameraView">
+      <div class="camera-close" onclick="closeCamera()">✕</div>
+      <div class="camera-feed"><video id="cameraVideo" autoplay playsinline></video></div>
+      <div class="camera-overlay">
+        <div class="camera-mode-selector">
+          <div class="camera-mode" data-mode="timelapse">TIME-LAPSE</div>
+          <div class="camera-mode" data-mode="video">VIDEO</div>
+          <div class="camera-mode active" data-mode="photo">PHOTO</div>
+          <div class="camera-mode" data-mode="portrait">PORTRAIT</div>
+          <div class="camera-mode" data-mode="pano">PANO</div>
+        </div>
+        <div class="camera-controls">
+          <div class="camera-gallery-thumb" id="cameraGalleryThumb" onclick="openGalleryFromCamera()"></div>
+          <div class="camera-btn" id="cameraShutter" onclick="takePhoto();event.stopPropagation();"></div>
+          <div class="camera-flip" onclick="flipCamera()">🔄</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTROL CENTER -->
+    <div class="control-center" id="controlCenter" onclick="closeCC(event)">
+      <div class="cc-panel" onclick="event.stopPropagation()">
+        <div class="cc-grid">
+          <div class="cc-tile on" id="ccWifi" onclick="toggleCCTile(this)"><div class="cc-tile-icon">📶</div><div class="cc-tile-label">Wi-Fi</div></div>
+          <div class="cc-tile" id="ccBT" onclick="toggleCCTile(this)"><div class="cc-tile-icon">🔷</div><div class="cc-tile-label">Bluetooth</div></div>
+          <div class="cc-tile on" id="ccData" onclick="toggleCCTile(this)"><div class="cc-tile-icon">📡</div><div class="cc-tile-label">Cellular</div></div>
+          <div class="cc-tile" id="ccPlane" onclick="toggleCCTile(this)"><div class="cc-tile-icon">✈️</div><div class="cc-tile-label">Airplane</div></div>
+          <div class="cc-tile" id="ccFlash" onclick="toggleFlashlight()"><div class="cc-tile-icon">🔦</div><div class="cc-tile-label">Flashlight</div></div>
+          <div class="cc-tile" id="ccRot" onclick="toggleCCTile(this)"><div class="cc-tile-icon">🔒</div><div class="cc-tile-label">Rotation</div></div>
+          <div class="cc-tile on" id="ccDND" onclick="toggleCCTile(this)"><div class="cc-tile-icon">🌙</div><div class="cc-tile-label">Focus</div></div>
+          <div class="cc-tile" id="ccCalc" onclick="openApp('calculator');closeCC();"><div class="cc-tile-icon">🔢</div><div class="cc-tile-label">Calculator</div></div>
+        </div>
+        <div class="cc-slider-row"><span class="cc-slider-icon">☀️</span><input type="range" min="20" max="100" value="80" id="brightSlider" class="cc-slider" aria-label="Brightness"></div>
+        <div class="cc-slider-row"><span class="cc-slider-icon">🔊</span><input type="range" class="cc-slider" min="0" max="100" value="60" aria-label="Volume"></div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATION CENTER -->
+    <div class="notif-center" id="notifCenter" onclick="closeNotif(event)">
+      <div class="nc-panel" onclick="event.stopPropagation()">
+        <div class="nc-header">
+          <div class="nc-title">Notifications</div>
+          <div class="nc-clear" onclick="clearNotifications()">Clear All</div>
+        </div>
+        <div id="notifList"></div>
+      </div>
+    </div>
+
+    <!-- KAY AI ASSISTANT -->
+    <div class="assistant-view" id="assistantView" onclick="if(event.target===this)closeAssistant()" role="dialog" aria-modal="true" aria-label="Kay AI assistant">
+      <div class="assistant-panel" onclick="event.stopPropagation()">
+        <div class="assistant-header">
+          <div class="assistant-brand"><div class="assistant-orb small"></div><div><div class="assistant-title">Kay AI</div><div class="assistant-status" id="assistantStatus">On-device assistant</div></div></div>
+          <button type="button" class="assistant-close" onclick="closeAssistant()" aria-label="Close Kay AI">×</button>
+        </div>
+        <div class="assistant-messages" id="assistantMessages" aria-live="polite"></div>
+        <div class="assistant-suggestions" id="assistantSuggestions">
+          <button type="button" data-assistant-prompt="Open Music">Open Music</button>
+          <button type="button" data-assistant-prompt="What time is it?">Time</button>
+          <button type="button" data-assistant-prompt="What is the weather?">Weather</button>
+          <button type="button" data-assistant-prompt="Turn on Focus">Focus</button>
+        </div>
+        <div class="assistant-input-row">
+          <input type="text" id="assistantInput" placeholder="Ask Kay AI anything..." autocomplete="off" aria-label="Ask Kay AI">
+          <button type="button" id="assistantMic" class="assistant-action" onclick="toggleAssistantListening()" aria-label="Use voice input">●</button>
+          <button type="button" id="assistantSend" class="assistant-send" onclick="submitAssistantPrompt()" aria-label="Send message">↑</button>
+        </div>
+        <div class="assistant-footnote">Private by design · understands KayPhone commands</div>
+      </div>
+    </div>
+
+    <!-- PASSCODE OVERLAY -->
+    <div class="passcode-overlay" id="passcodeOverlay">
+      <!-- Wallpaper blur behind passcode -->
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(40px);z-index:0;"></div>
+      <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;">
+        <!-- Time on passcode screen -->
+        <div id="passcodeTime" style="font-size:52px;font-weight:200;color:#fff;letter-spacing:-1px;margin-bottom:4px;">9:41</div>
+        <div id="passcodeDate" style="font-size:15px;color:rgba(255,255,255,0.7);margin-bottom:36px;"></div>
+        <div style="font-size:15px;font-weight:500;color:#fff;margin-bottom:20px;" id="passcodeLabel">Enter Passcode</div>
+        <!-- Dots -->
+        <div class="passcode-dots" id="passcodeDots" style="margin-bottom:36px;">
+          <div class="passcode-dot"></div><div class="passcode-dot"></div><div class="passcode-dot"></div>
+          <div class="passcode-dot"></div><div class="passcode-dot"></div><div class="passcode-dot"></div>
+        </div>
+        <!-- Keypad -->
+        <div class="passcode-grid">
+          <div class="passcode-key" onclick="enterPasscode('1')"><div class="passcode-num">1</div></div>
+          <div class="passcode-key" onclick="enterPasscode('2')"><div class="passcode-num">2</div><div class="passcode-letters">ABC</div></div>
+          <div class="passcode-key" onclick="enterPasscode('3')"><div class="passcode-num">3</div><div class="passcode-letters">DEF</div></div>
+          <div class="passcode-key" onclick="enterPasscode('4')"><div class="passcode-num">4</div><div class="passcode-letters">GHI</div></div>
+          <div class="passcode-key" onclick="enterPasscode('5')"><div class="passcode-num">5</div><div class="passcode-letters">JKL</div></div>
+          <div class="passcode-key" onclick="enterPasscode('6')"><div class="passcode-num">6</div><div class="passcode-letters">MNO</div></div>
+          <div class="passcode-key" onclick="enterPasscode('7')"><div class="passcode-num">7</div><div class="passcode-letters">PQRS</div></div>
+          <div class="passcode-key" onclick="enterPasscode('8')"><div class="passcode-num">8</div><div class="passcode-letters">TUV</div></div>
+          <div class="passcode-key" onclick="enterPasscode('9')"><div class="passcode-num">9</div><div class="passcode-letters">WXYZ</div></div>
+          <div class="passcode-key" style="visibility:hidden;"></div>
+          <div class="passcode-key" onclick="enterPasscode('0')"><div class="passcode-num">0</div></div>
+          <div class="passcode-key" onclick="backspacePasscode()"><div class="passcode-num" style="font-size:22px;">⌫</div></div>
+        </div>
+        <!-- Emergency + Cancel -->
+        <div style="display:flex;justify-content:space-between;width:260px;margin-top:24px;">
+          <div style="font-size:14px;color:rgba(255,255,255,0.6);cursor:pointer;padding:8px;" data-toast="🆘|Emergency SOS">Emergency</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.6);cursor:pointer;padding:8px;" onclick="hidePasscodeOverlay()">Cancel</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar" id="statusBar">
+      <div class="status-left"><span class="status-time" id="statusTime">9:41</span></div>
+      <div class="status-right">
+        <div class="signal-bars"><div class="signal-bar"></div><div class="signal-bar"></div><div class="signal-bar"></div><div class="signal-bar"></div></div>
+        <span>5G</span>
+        <div class="battery"><div class="battery-fill" id="batteryFill"></div></div>
+      </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/security.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/gestures.js"></script>
+<script src="js/data.js"></script>
+<script src="js/navigation.js"></script>
+<script src="js/status-bar.js"></script>
+<script src="js/lock-screen.js"></script>
+<script src="js/home-screen.js"></script>
+<script src="js/system-ui.js"></script>
+<script src="js/app-view.js"></script>
+<script src="js/apps-core.js"></script>
+<script src="js/apps-media-utility.js"></script>
+<script src="js/apps-productivity.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/store-social.js"></script>
+<script src="js/interactions.js"></script>
+<script src="js/boot-hardware.js"></script>
+<script src="js/ui-extras.js"></script>
+<script src="js/focus-recording.js"></script>
+</body>
+</html>
