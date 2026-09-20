@@ -158,6 +158,18 @@ The desktop experience also supports visible pointer feedback on app tiles and m
 
 The supplied `mywidgetflow.vercel.app` widget is available as a first-class **KayWidget** app on Home page 3. It opens with a KayPhone app header and loads widget ID `1ff01cfdc900` inside a sandboxed iframe. The isolation prevents the third-party widget’s global DOM and CSS from covering the KayPhone shell or other apps. The widget host was added to the page Content-Security-Policy, and the app shows the widget’s own loading state before its external script renders.
 
+## Mobile scrolling and Kay Arcade — September 2026
+
+App-view bodies now explicitly support vertical touch scrolling and pinch zoom, preserve momentum scrolling on iOS-style browsers, contain overscroll, and retain a visible thin scrollbar on desktop. Kay Arcade replaces the earlier two-card placeholder with three playable Kay Originals: Neon Snake, Stack Rush, and Memory Flip. Each game has touch-friendly controls, score tracking, best-score persistence, and a polished neon surface. Kay Arcade is visible as the **Kay Arcade** icon on Home page 3 and is also listed in the Kay Store Games category.
+
+## Home page map and live Kay Social
+
+KayPhone has three horizontal Home pages. Page 1 contains Phone, Messages, Safari, Music, and the Kay social suite: KayBook, KayChat, KayTok, KayTube, KayGram, and KayPay. Page 2 contains Photos, Camera, Maps, Weather, Calendar, Clock, Notes, and Reminders. Page 3 contains Calculator, Voice Memos, Files, Settings, Kay Store, Health, Stocks, Kay Arcade, Kay AI, and KayWidget. Swipe left or right across the Home screen to change pages; the page dots at the bottom show which page is active.
+
+KayBook, KayTok, KayTube, and KayGram now use the shared live Kay Social backend. Each has a real composer, feed, likes, comments, and share-link action. KayChat already uses the existing Supabase Realtime room/messages tables. Without Supabase configuration or a Kay ID session, social apps show an honest connection state instead of fake posts; after configuration, all social records are attached to the signed-in Kay account.
+
+To enable the social backend, run the complete `supabase/schema.sql` in Supabase SQL Editor. The new section is rerunnable and creates `social_posts`, `social_likes`, `social_comments`, `social_follows`, a `social_profiles` public projection that excludes recovery emails, owner-checked RLS policies, indexes, and Realtime publication entries. Then enable Email/password authentication with **Confirm email disabled** for the current no-domain setup, set `js/config.js`, create a Kay ID, and refresh KayPhone.
+
 ## Kay ID accounts — September 2026
 
 Configured deployments now show a Kay ID gate instead of silently creating anonymous users. A user signs up or signs in with a public ID such as `goold.kay` and a password; an optional recovery email can be saved privately on the profile, but it is not used as the login name. Supabase Auth owns the password and persistent session, while `profiles.kay_id` is protected by a unique database index and the private Auth UUID remains the owner key for Row Level Security.

@@ -128,6 +128,59 @@ const Supa = (function () {
     try { localStorage.setItem('kayphone_display_name', name); } catch (e) {}
   }
 
+  function socialError(message) { return { data: [], error: new Error(message) }; }
+  const social = {
+    listPosts: async function (network, limit) {
+      if (!client || !currentUser) return socialError('Sign in with Kay ID to load Kay Social.');
+      let query = client.from('social_posts').select('id, author_id, network, content, media_url, created_at').order('created_at', { ascending: false }).limit(limit || 30);
+      if (network) query = query.eq('network', network);
+      const posts = await query;
+      if (posts.error || !posts.data || !posts.data.length) return posts;
+      const profiles = await client.from('social_profiles').select('id, kay_id, display_name').in('id', posts.data.map(p => p.author_id));
+      const byId = {}; (profiles.data || []).forEach(p => { byId[p.id] = p; });
+      posts.data.forEach(p => { p.profiles = byId[p.author_id] || {}; });
+      return posts;
+    },
+    createPost: async function (network, content, mediaUrl) {
+      if (!client || !currentUser) return socialError('Sign in with Kay ID before posting.');
+      const body = String(content || '').trim();
+      if (!body || body.length > 2000) return socialError('Write between 1 and 2,000 characters.');
+      return await client.from('social_posts').insert({ author_id: currentUser.id, network: network || 'kaybook', content: body, media_url: mediaUrl || null }).select('id, author_id, network, content, media_url, created_at').single();
+    },
+    toggleLike: async function (postId) {
+      if (!client || !currentUser) return socialError('Sign in with Kay ID before liking posts.');
+      const existing = await client.from('social_likes').select('post_id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
+      if (existing.data) return await client.from('social_likes').delete().eq('post_id', postId).eq('user_id', currentUser.id);
+      return await client.from('social_likes').insert({ post_id: postId, user_id: currentUser.id });
+    },
+    getLikeCounts: async function (postIds) {
+      if (!client || !postIds || !postIds.length) return { data: [], error: null };
+      return await client.from('social_likes').select('post_id, user_id').in('post_id', postIds);
+    },
+    listComments: async function (postId) {
+      if (!client || !currentUser) return socialError('Sign in with Kay ID to load comments.');
+      const comments = await client.from('social_comments').select('id, post_id, author_id, body, created_at').eq('post_id', postId).order('created_at', { ascending: true });
+      if (comments.error || !comments.data || !comments.data.length) return comments;
+      const profiles = await client.from('social_profiles').select('id, kay_id, display_name').in('id', comments.data.map(c => c.author_id));
+      const byId = {}; (profiles.data || []).forEach(p => { byId[p.id] = p; });
+      comments.data.forEach(c => { c.profiles = byId[c.author_id] || {}; });
+      return comments;
+    },
+    addComment: async function (postId, body) {
+      if (!client || !currentUser) return socialError('Sign in with Kay ID before commenting.');
+      const text = String(body || '').trim();
+      if (!text || text.length > 500) return socialError('Comment must be between 1 and 500 characters.');
+      return await client.from('social_comments').insert({ post_id: postId, author_id: currentUser.id, body: text }).select('id, post_id, author_id, body, created_at').single();
+    },
+    toggleFollow: async function (profileId) {
+      if (!client || !currentUser) return socialError('Sign in with Kay ID before following people.');
+      if (profileId === currentUser.id) return socialError('You cannot follow yourself.');
+      const existing = await client.from('social_follows').select('follower_id').eq('follower_id', currentUser.id).eq('following_id', profileId).maybeSingle();
+      if (existing.data) return await client.from('social_follows').delete().eq('follower_id', currentUser.id).eq('following_id', profileId);
+      return await client.from('social_follows').insert({ follower_id: currentUser.id, following_id: profileId });
+    }
+  };
+
   // ---------- generic CRUD helper for a user-scoped table ----------
   function userTable(tableName) {
     return {
@@ -262,6 +315,7 @@ const Supa = (function () {
     signOutKay: signOutKay,
     getAccount: getAccount,
     validKayId: validKayId,
+    social: social,
     notes: userTable('notes'),
     reminders: userTable('reminders'),
     calendarEvents: userTable('calendar_events'),

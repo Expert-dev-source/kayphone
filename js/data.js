@@ -40,7 +40,7 @@ if (!installedApps) {
     {id:'store',name:'Kay Store',icon:'🛒',bg:'linear-gradient(135deg,#BF5AF2,#FF375F)',badge:0,page:2},
     {id:'health',name:'Health',icon:'❤️',bg:'linear-gradient(135deg,#FF453A,#FF375F)',badge:0,page:2},
     {id:'stocks',name:'Stocks',icon:'📈',bg:'linear-gradient(135deg,#30D158,#000)',badge:0,page:2},
-    {id:'games',name:'Games',icon:'🎮',bg:'linear-gradient(135deg,#0A84FF,#30D158)',badge:0,page:2},
+    {id:'games',name:'Kay Arcade',icon:'🎮',bg:'linear-gradient(135deg,#0A84FF,#30D158)',badge:0,page:2},
     {id:'assistant',name:'Kay AI',icon:'🤖',bg:'linear-gradient(135deg,#5E5CE6,#BF5AF2)',badge:0,page:2}
   ];
 }

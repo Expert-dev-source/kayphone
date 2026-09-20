@@ -44,7 +44,7 @@ const KAY_STORE_CATALOG = [
   {id:'notes',name:'Notes+',icon:'📝',category:'Productivity',desc:'Capture ideas, checklists, and polished notes.',bg:'linear-gradient(135deg,#FFD60A,#FF9F0A)'},
   {id:'assistant',name:'Kay AI',icon:'🤖',category:'Utilities',desc:'A calm voice assistant for your phone.',bg:'linear-gradient(135deg,#5E5CE6,#BF5AF2)'},
   {id:'studio',name:'Studio',icon:'🎨',category:'Creative',desc:'Create, remix, and share your next idea.',bg:'linear-gradient(135deg,#FF375F,#BF5AF2)'},
-  {id:'games',name:'Arcade',icon:'🎮',category:'Games',desc:'Quick games designed for short sessions.',bg:'linear-gradient(135deg,#0A84FF,#30D158)'},
+  {id:'games',name:'Kay Arcade',icon:'🎮',category:'Games',desc:'Three polished quick games designed for KayPhone.',bg:'linear-gradient(135deg,#0A84FF,#30D158)'},
   {id:'kaychat',name:'KayChat',icon:'💬',category:'Social',desc:'Keep conversations close and expressive.',bg:'linear-gradient(135deg,#25D366,#128C7E)'},
   {id:'files',name:'Files',icon:'📁',category:'Utilities',desc:'Organize downloads and cloud documents.',bg:'linear-gradient(135deg,#5E5CE6,#0A84FF)'}
 ];
@@ -87,68 +87,91 @@ Apps.stocks = {
   close: function() { const v = document.getElementById('view-stocks'); if(v) v.classList.remove('open'); State.currentApp = null; }
 };
 
-// ===== GAMES =====
+// ===== KAY ARCADE =====
+let snakeGame = null, snakeDx = 1, snakeDy = 0, stackGame = null, memoryState = null;
 Apps.games = {
   open: function() {
-    const old = document.getElementById('view-games');
-    if (old) old.remove();
-    const view = getOrCreateView('games', 'Games',
-      '<div style="padding:20px;">' +
-        '<div style="font-size:28px;font-weight:700;margin-bottom:20px;color:#fff;">Arcade</div>' +
-        '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">' +
-          '<div style="background:linear-gradient(135deg,var(--ios-green),var(--ios-teal));border-radius:16px;padding:20px;text-align:center;cursor:pointer;" onclick="openSnake()">' +
-            '<div style="font-size:40px;margin-bottom:8px;">🐍</div><div style="font-size:16px;font-weight:700;color:#fff;">Snake</div>' +
-          '</div>' +
-          '<div style="background:linear-gradient(135deg,var(--ios-purple),var(--ios-pink));border-radius:16px;padding:20px;text-align:center;cursor:pointer;" data-toast="🧱|Blocks coming soon!">' +
-            '<div style="font-size:40px;margin-bottom:8px;">🧱</div><div style="font-size:16px;font-weight:700;color:#fff;">Blocks</div>' +
-          '</div>' +
+    const old = document.getElementById('view-games'); if (old) old.remove();
+    const view = getOrCreateView('games', 'Kay Arcade',
+      '<div class="arcade-shell">' +
+        '<div class="arcade-hero"><div class="arcade-kicker">KAY ORIGINALS · 01</div><div class="arcade-title">Play something<br><span>beautiful.</span></div><div class="arcade-subtitle">Quick games built for KayPhone. No ads. No waiting.</div><div class="arcade-stats"><span>🏆 Best score <b id="arcadeBestScore">' + (localStorage.getItem('kayv3_best_score') || '0') + '</b></span><span>⚡ 3 games</span></div></div>' +
+        '<div class="arcade-section-label">CHOOSE A GAME</div>' +
+        '<div class="arcade-game-list">' +
+          '<button class="arcade-card arcade-snake" onclick="openSnake()"><span class="arcade-art">✦</span><span><b>Neon Snake</b><small>Classic chase · swipe or tap</small></span><i>›</i></button>' +
+          '<button class="arcade-card arcade-stack" onclick="openStackRush()"><span class="arcade-art">▰</span><span><b>Stack Rush</b><small>Place the block · beat your best</small></span><i>›</i></button>' +
+          '<button class="arcade-card arcade-memory" onclick="openMemoryFlip()"><span class="arcade-art">◈</span><span><b>Memory Flip</b><small>Match the pairs · train your brain</small></span><i>›</i></button>' +
         '</div>' +
-        '<div id="gameArea" style="margin-top:20px;"></div>' +
+        '<div id="gameArea" class="game-area"></div>' +
       '</div>'
     );
-    setTimeout(() => view.classList.add('open'), 10);
-    State.currentApp = 'games';
+    setTimeout(() => view.classList.add('open'), 10); State.currentApp = 'games';
   },
-  close: function() { const v = document.getElementById('view-games'); if(v) v.classList.remove('open'); State.currentApp = null; }
+  close: function() { if (snakeGame) clearInterval(snakeGame); if (stackGame) cancelAnimationFrame(stackGame); const v = document.getElementById('view-games'); if(v) v.classList.remove('open'); State.currentApp = null; }
 };
+
+function arcadeBackToGames() { const area = document.getElementById('gameArea'); if (area) area.innerHTML = ''; }
+function arcadeScore(score) { const best = Math.max(Number(localStorage.getItem('kayv3_best_score') || 0), score); localStorage.setItem('kayv3_best_score', best); const node = document.getElementById('arcadeBestScore'); if (node) node.textContent = best; }
 function openSnake() {
-  const area = document.getElementById('gameArea');
-  if (!area) return;
-  area.innerHTML = '<canvas id="snakeCanvas" width="300" height="300" style="border-radius:12px;background:var(--ios-gray5);border:1px solid var(--ios-border);display:block;margin:0 auto;"></canvas>' +
-    '<div style="display:flex;gap:20px;justify-content:center;margin-top:20px;"><button style="background:var(--ios-blue);color:#fff;border:none;border-radius:12px;padding:12px 24px;font-size:16px;font-weight:600;cursor:pointer;" onclick="startSnake()">Start</button></div>' +
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:180px;margin:16px auto 0;text-align:center;">' +
-      '<div></div><button onclick="snakeDir(0,-1)" style="background:var(--ios-gray4);color:#fff;border:none;border-radius:8px;padding:12px;font-size:18px;cursor:pointer;">▲</button><div></div>' +
-      '<button onclick="snakeDir(-1,0)" style="background:var(--ios-gray4);color:#fff;border:none;border-radius:8px;padding:12px;font-size:18px;cursor:pointer;">◄</button>' +
-      '<button onclick="snakeDir(0,1)" style="background:var(--ios-gray4);color:#fff;border:none;border-radius:8px;padding:12px;font-size:18px;cursor:pointer;">▼</button>' +
-      '<button onclick="snakeDir(1,0)" style="background:var(--ios-gray4);color:#fff;border:none;border-radius:8px;padding:12px;font-size:18px;cursor:pointer;">►</button>' +
-    '</div>';
+  const area = document.getElementById('gameArea'); if (!area) return;
+  area.innerHTML = '<div class="game-topline"><button onclick="arcadeBackToGames()">‹ Arcade</button><b>Neon Snake</b><span id="snakeScoreLabel">0</span></div><canvas id="snakeCanvas" width="300" height="300" class="game-canvas"></canvas><button class="game-primary" onclick="startSnake()">Start Run</button><div class="game-pad"><span></span><button onclick="snakeDir(0,-1)">▲</button><span></span><button onclick="snakeDir(-1,0)">◀</button><button onclick="snakeDir(0,1)">▼</button><button onclick="snakeDir(1,0)">▶</button></div><div class="game-hint">Swipe the board or use the controls</div>';
+  const canvas = document.getElementById('snakeCanvas'); let sx, sy;
+  canvas.addEventListener('touchstart', e => { sx=e.touches[0].clientX; sy=e.touches[0].clientY; }, {passive:true});
+  canvas.addEventListener('touchend', e => { const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy; if(Math.abs(dx)>Math.abs(dy)) snakeDir(dx>0?1:-1,0); else if(Math.abs(dy)>12) snakeDir(0,dy>0?1:-1); }, {passive:true});
 }
-let snakeGame = null, snakeDx = 1, snakeDy = 0;
-function snakeDir(dx, dy) { snakeDx = dx; snakeDy = dy; }
+function snakeDir(dx, dy) { if (snakeDx + dx === 0 && snakeDy + dy === 0) return; snakeDx = dx; snakeDy = dy; }
 function startSnake() {
-  const canvas = document.getElementById('snakeCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const grid = 15, count = 20;
-  let snake = [{x:10,y:10}], apple = {x:15,y:15}, score = 0;
-  snakeDx = 1; snakeDy = 0;
-  if (snakeGame) clearInterval(snakeGame);
-  snakeGame = setInterval(() => {
-    const head = {x:snake[0].x+snakeDx, y:snake[0].y+snakeDy};
-    if (head.x<0||head.x>=count||head.y<0||head.y>=count||snake.some(s=>s.x===head.x&&s.y===head.y)) {
-      clearInterval(snakeGame);
-      showToast('💀', 'Game Over! Score: ' + score);
-      return;
-    }
-    snake.unshift(head);
-    if (head.x===apple.x&&head.y===apple.y) { score+=10; apple={x:Math.floor(Math.random()*count),y:Math.floor(Math.random()*count)}; }
-    else snake.pop();
-    ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle='#30D158'; snake.forEach(s=>ctx.fillRect(s.x*grid,s.y*grid,grid-1,grid-1));
-    ctx.fillStyle='#FF453A'; ctx.fillRect(apple.x*grid,apple.y*grid,grid-1,grid-1);
-    ctx.fillStyle='#fff'; ctx.font='12px sans-serif'; ctx.fillText('Score: '+score,8,16);
-  }, 100);
+  const canvas = document.getElementById('snakeCanvas'); if (!canvas) return; const ctx = canvas.getContext('2d'), size=15,count=20;
+  let snake=[{x:10,y:10}], apple={x:15,y:15}, score=0; snakeDx=1; snakeDy=0; if(snakeGame) clearInterval(snakeGame);
+  function draw(){ ctx.fillStyle='#070b16';ctx.fillRect(0,0,300,300);ctx.strokeStyle='rgba(100,210,255,.06)';for(let i=0;i<20;i++){ctx.beginPath();ctx.moveTo(i*15,0);ctx.lineTo(i*15,300);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*15);ctx.lineTo(300,i*15);ctx.stroke();}ctx.shadowBlur=12;ctx.shadowColor='#64D2FF';ctx.fillStyle='#64D2FF';snake.forEach((s,i)=>ctx.fillRect(s.x*size+1,s.y*size+1,size-3,size-3));ctx.shadowColor='#FF375F';ctx.fillStyle='#FF375F';ctx.beginPath();ctx.arc(apple.x*size+7,apple.y*size+7,5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+  draw(); snakeGame=setInterval(()=>{const head={x:snake[0].x+snakeDx,y:snake[0].y+snakeDy};if(head.x<0||head.x>=count||head.y<0||head.y>=count||snake.some(s=>s.x===head.x&&s.y===head.y)){clearInterval(snakeGame);arcadeScore(score);showToast('💥','Run over · '+score+' points');return;}snake.unshift(head);if(head.x===apple.x&&head.y===apple.y){score+=10;const label=document.getElementById('snakeScoreLabel');if(label)label.textContent=score;do{apple={x:Math.floor(Math.random()*count),y:Math.floor(Math.random()*count)}}while(snake.some(s=>s.x===apple.x&&s.y===apple.y));}else snake.pop();draw();},105);
 }
+
+function openStackRush(){const area=document.getElementById('gameArea');if(!area)return;area.innerHTML='<div class="game-topline"><button onclick="arcadeBackToGames()">‹ Arcade</button><b>Stack Rush</b><span id="stackScoreLabel">0</span></div><canvas id="stackCanvas" width="300" height="360" class="game-canvas"></canvas><button class="game-primary" onclick="startStackRush()">Start Run</button><div class="game-hint">Tap anywhere to drop the moving block</div>';const canvas=document.getElementById('stackCanvas');canvas.onclick=dropStackBlock;}
+function startStackRush(){const c=document.getElementById('stackCanvas');if(!c)return;const ctx=c.getContext('2d');let blocks=[{x:70,w:160,y:330}],moving={x:0,w:160,y:300,dir:1},score=0;function draw(){ctx.fillStyle='#090716';ctx.fillRect(0,0,300,360);ctx.strokeStyle='rgba(191,90,242,.08)';for(let y=0;y<360;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(300,y);ctx.stroke()}blocks.forEach((b,i)=>{ctx.fillStyle=i%2?'#0A84FF':'#BF5AF2';ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=16;ctx.fillRect(b.x,b.y,b.w,24)});ctx.fillStyle='#FF9F0A';ctx.shadowColor='#FF9F0A';ctx.fillRect(moving.x,moving.y,moving.w,24);ctx.shadowBlur=0}function tick(){moving.x+=moving.dir*3;if(moving.x<0||moving.x+moving.w>300)moving.dir*=-1;draw();stackGame=requestAnimationFrame(tick)}window._stack={blocks,moving,ctx,draw,score};draw();if(stackGame)cancelAnimationFrame(stackGame);stackGame=requestAnimationFrame(tick)}
+function dropStackBlock(){const g=window._stack;if(!g||!g.moving)return;const last=g.blocks[g.blocks.length-1],left=Math.max(g.moving.x,last.x),right=Math.min(g.moving.x+g.moving.w,last.x+last.w),w=right-left;if(w<18){cancelAnimationFrame(stackGame);arcadeScore(g.score);showToast('💥','Stack ended · '+g.score+' points');return;}g.blocks.push({x:left,w:w,y:last.y-27});g.moving={x:0,w:w,y:last.y-54,dir:1};g.score+=10;const label=document.getElementById('stackScoreLabel');if(label)label.textContent=g.score;}
+
+function openMemoryFlip(){const area=document.getElementById('gameArea');if(!area)return;const symbols=['✦','✧','◈','◇','●','○'];memoryState={open:[],matched:[],moves:0};area.innerHTML='<div class="game-topline"><button onclick="arcadeBackToGames()">‹ Arcade</button><b>Memory Flip</b><span id="memoryMovesLabel">0 moves</span></div><div id="memoryBoard" class="memory-board"></div><button class="game-primary" onclick="openMemoryFlip()">New Game</button><div class="game-hint">Find every matching pair</div>';const deck=symbols.concat(symbols).sort(()=>Math.random()-.5),board=document.getElementById('memoryBoard');board.innerHTML=deck.map((s,i)=>'<button class="memory-card" data-memory-index="'+i+'" data-memory-symbol="'+s+'" onclick="flipMemoryCard('+i+')"><span>?</span></button>').join('');memoryState.deck=deck;}
+function flipMemoryCard(i){if(!memoryState||memoryState.matched.includes(i)||memoryState.open.includes(i)||memoryState.open.length===2)return;memoryState.open.push(i);const cards=document.querySelectorAll('.memory-card');cards[i].classList.add('flipped');cards[i].querySelector('span').textContent=memoryState.deck[i];if(memoryState.open.length===2){memoryState.moves++;document.getElementById('memoryMovesLabel').textContent=memoryState.moves+' moves';const[a,b]=memoryState.open;if(memoryState.deck[a]===memoryState.deck[b]){memoryState.matched.push(a,b);memoryState.open=[];if(memoryState.matched.length===memoryState.deck.length){arcadeScore(Math.max(10,100-memoryState.moves*3));showToast('🏆','Perfect match!');}}else setTimeout(()=>{cards[a].classList.remove('flipped');cards[b].classList.remove('flipped');memoryState.open=[];},650);}}
+
+// ===== LIVE KAY SOCIAL =====
+// All Kay social surfaces share the same Supabase tables. The network label
+// keeps each app's feed separate while giving the user one identity, likes,
+// comments, and follow graph across KayBook, KayTok, KayTube, and KayGram.
+const LIVE_SOCIAL_META = {
+  kaybook: {title:'KayBook', network:'kaybook', accent:'linear-gradient(135deg,#1877F2,#0A84FF)', prompt:'Share an update with your Kay circle…', icon:'📘'},
+  kaytok: {title:'KayTok', network:'kaytok', accent:'linear-gradient(135deg,#ff0050,#00f2ea)', prompt:'Post a short KayTok thought or clip note…', icon:'🎵'},
+  kaytube: {title:'KayTube', network:'kaytube', accent:'linear-gradient(135deg,#FF0000,#CC0000)', prompt:'Share a video title or channel update…', icon:'▶️'},
+  kaygram: {title:'KayGram', network:'kaygram', accent:'linear-gradient(135deg,#E1306C,#F77737)', prompt:'Share a photo caption or moment…', icon:'📷'}
+};
+function liveSocialAuthor(post){const p=post.profiles||{};return escapeHtml(p.kay_id||p.display_name||'Kay member');}
+function liveSocialTime(value){try{return new Intl.DateTimeFormat([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(value));}catch(e){return 'Recently';}}
+function liveSocialEmpty(meta, text){return '<div class="social-empty"><div style="font-size:34px;">'+meta.icon+'</div><b>'+text+'</b><span>Connect Supabase and sign in with Kay ID to make this feed live.</span></div>';}
+async function loadLiveSocial(meta){
+  const list=document.getElementById('liveSocialList_'+meta.network); if(!list)return;
+  if(!Supa.isConfigured||!Supa.getUser()){list.innerHTML=liveSocialEmpty(meta,'Kay Social is ready');return;}
+  list.innerHTML='<div class="social-loading">Loading live posts…</div>';
+  const result=await Supa.social.listPosts(meta.network,40);
+  if(result.error){list.innerHTML=liveSocialEmpty(meta,'Could not load this feed');return;}
+  const posts=result.data||[];
+  if(!posts.length){list.innerHTML=liveSocialEmpty(meta,'Be the first to post');return;}
+  const counts=await Supa.social.getLikeCounts(posts.map(p=>p.id)); const likes={};(counts.data||[]).forEach(l=>{likes[l.post_id]=(likes[l.post_id]||0)+1;});
+  list.innerHTML=posts.map(p=>'<article class="social-post" data-social-post="'+p.id+'"><div class="social-post-head"><div class="social-avatar" style="background:'+meta.accent+'">'+meta.icon+'</div><div><b>'+liveSocialAuthor(p)+'</b><small>'+liveSocialTime(p.created_at)+'</small></div></div><div class="social-post-copy">'+escapeHtml(p.content)+'</div>'+(p.media_url?'<a class="social-post-media" href="'+escapeHtml(p.media_url)+'" target="_blank" rel="noopener">Open attached media</a>':'')+'<div class="social-post-actions"><button data-social-like="'+p.id+'">♡ '+(likes[p.id]||0)+'</button><button data-social-comments="'+p.id+'">💬 Comments</button><button data-social-follow="'+p.author_id+'">＋ Follow</button><button data-social-share="'+p.id+'">↗ Share</button></div><div class="social-comment-box" id="socialComments_'+p.id+'"></div></article>').join('');
+}
+function openLiveSocialApp(id){
+  const meta=LIVE_SOCIAL_META[id]; const old=document.getElementById('view-'+id);if(old)old.remove();
+  const view=getOrCreateView(id,meta.title,'<div class="live-social-shell"><div class="live-social-brand" style="background:'+meta.accent+'"><div><span>'+meta.icon+' KAY SOCIAL</span><h2>'+meta.title+'</h2><p>Real posts from your Kay community.</p></div></div><form class="social-composer" data-social-compose="'+meta.network+'"><textarea maxlength="2000" placeholder="'+meta.prompt+'" required></textarea><div><small>Signed in with Kay ID</small><button type="submit">Post</button></div></form><div class="social-feed-label">LATEST FROM KAY MEMBERS</div><div id="liveSocialList_'+meta.network+'"></div></div>');
+  setTimeout(()=>view.classList.add('open'),10);State.currentApp=id;loadLiveSocial(meta);
+}
+Apps.kaybook={open:()=>openLiveSocialApp('kaybook'),close:()=>{const v=document.getElementById('view-kaybook');if(v)v.classList.remove('open');State.currentApp=null;}};
+Apps.kaytok={open:()=>openLiveSocialApp('kaytok'),close:()=>{const v=document.getElementById('view-kaytok');if(v)v.classList.remove('open');State.currentApp=null;}};
+Apps.kaytube={open:()=>openLiveSocialApp('kaytube'),close:()=>{const v=document.getElementById('view-kaytube');if(v)v.classList.remove('open');State.currentApp=null;}};
+Apps.kaygram={open:()=>openLiveSocialApp('kaygram'),close:()=>{const v=document.getElementById('view-kaygram');if(v)v.classList.remove('open');State.currentApp=null;}};
+document.addEventListener('submit',async function(e){
+  const comment=e.target.closest('[data-comment-post]');
+  if(comment){e.preventDefault();const input=comment.querySelector('input'),btn=comment.querySelector('button');if(btn)btn.disabled=true;const result=await Supa.social.addComment(comment.dataset.commentPost,input.value);if(result.error)showToast('⚠️',result.error.message);else{input.value='';showToast('💬','Comment added');const post=document.querySelector('[data-social-post="'+comment.dataset.commentPost+'"] button[data-social-comments]');if(post)post.click();}if(btn)btn.disabled=false;return;}
+  const form=e.target.closest('[data-social-compose]');if(!form)return;e.preventDefault();const btn=form.querySelector('button'),text=form.querySelector('textarea').value.trim(),network=form.dataset.socialCompose;if(btn)btn.disabled=true;const result=await Supa.social.createPost(network,text);if(result.error)showToast('⚠️',result.error.message);else{form.querySelector('textarea').value='';showToast('✅','Posted to Kay Social');loadLiveSocial(LIVE_SOCIAL_META[network]);}if(btn)btn.disabled=false;
+});
+document.addEventListener('click',async function(e){const like=e.target.closest('[data-social-like]');if(like){const r=await Supa.social.toggleLike(like.dataset.socialLike);if(r.error)showToast('⚠️',r.error.message);else loadLiveSocial(LIVE_SOCIAL_META[State.currentApp]);return;}const follow=e.target.closest('[data-social-follow]');if(follow){const r=await Supa.social.toggleFollow(follow.dataset.socialFollow);if(r.error)showToast('⚠️',r.error.message);else{follow.textContent='✓ Following';showToast('👤','Following Kay member');}return;}const share=e.target.closest('[data-social-share]');if(share){try{await navigator.clipboard.writeText(location.href+'#post-'+share.dataset.socialShare);showToast('↗','Post link copied');}catch(err){showToast('↗','Share link ready');}return;}const comments=e.target.closest('[data-social-comments]');if(comments){const box=document.getElementById('socialComments_'+comments.dataset.socialComments);if(!box)return;box.innerHTML='<div class="social-comment-loading">Loading comments…</div>';const r=await Supa.social.listComments(comments.dataset.socialComments);if(r.error){box.innerHTML='<small>'+escapeHtml(r.error.message)+'</small>';return;}box.innerHTML=(r.data||[]).map(c=>'<div><b>'+liveSocialAuthor(c)+'</b> '+escapeHtml(c.body)+'</div>').join('')+'<form class="social-comment-form" data-comment-post="'+comments.dataset.socialComments+'"><input maxlength="500" placeholder="Add a comment…" required><button>Send</button></form>';}});
 
 // ===== SOCIAL APPS =====
 Apps.kaybook = {
@@ -319,6 +342,12 @@ Apps.kaypay = {
   },
   close: function() { const v = document.getElementById('view-kaypay'); if(v) v.classList.remove('open'); State.currentApp = null; }
 };
+
+// Re-apply live social apps after the legacy visual definitions above.
+Apps.kaybook={open:()=>openLiveSocialApp('kaybook'),close:()=>{const v=document.getElementById('view-kaybook');if(v)v.classList.remove('open');State.currentApp=null;}};
+Apps.kaytok={open:()=>openLiveSocialApp('kaytok'),close:()=>{const v=document.getElementById('view-kaytok');if(v)v.classList.remove('open');State.currentApp=null;}};
+Apps.kaytube={open:()=>openLiveSocialApp('kaytube'),close:()=>{const v=document.getElementById('view-kaytube');if(v)v.classList.remove('open');State.currentApp=null;}};
+Apps.kaygram={open:()=>openLiveSocialApp('kaygram'),close:()=>{const v=document.getElementById('view-kaygram');if(v)v.classList.remove('open');State.currentApp=null;}};
 
 Apps.assistant = { open: openAssistant, close: closeAssistant };
 
