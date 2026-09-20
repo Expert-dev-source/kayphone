@@ -44,6 +44,9 @@ if (!installedApps) {
     {id:'assistant',name:'Kay AI',icon:'🤖',bg:'linear-gradient(135deg,#5E5CE6,#BF5AF2)',badge:0,page:2}
   ];
 }
+if (!installedApps.some(function (app) { return app.id === 'widgetflow'; })) {
+  installedApps.push({id:'widgetflow',name:'KayWidget',icon:'✦',bg:'linear-gradient(135deg,#0A84FF,#BF5AF2)',badge:0,page:2});
+}
 
 let dockApps = installedApps.filter(a => a.dock);
 let wallpapers; try { wallpapers = JSON.parse(localStorage.getItem('kayv3_wallpapers')||'[]'); } catch(e) { wallpapers = []; }
@@ -102,4 +105,3 @@ function safeCloseView(id) {
   }
   State.currentApp = null;
 }
-

@@ -21,18 +21,31 @@ const Supa = (function () {
     });
   }
 
+  function kayAuthEmail(kayId) {
+    return kayId.toLowerCase().replace(/[^a-z0-9._-]/g, '') + '@accounts.kayphone.internal';
+  }
+
+  function cleanKayId(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function validKayId(value) {
+    return /^[a-z0-9][a-z0-9_-]{2,23}\.kay$/.test(cleanKayId(value));
+  }
+
   async function init() {
     if (!client) { ready = true; flushReady(); return; }
     try {
       const { data: { session } } = await client.auth.getSession();
       if (session && session.user) {
         currentUser = session.user;
-      } else {
-        const { data, error } = await client.auth.signInAnonymously();
-        if (error) throw error;
-        currentUser = data.user;
+        if (currentUser.is_anonymous) {
+          await client.auth.signOut();
+          currentUser = null;
+        } else {
+          await ensureProfile();
+        }
       }
-      await ensureProfile();
     } catch (e) {
       console.error('[Supa] auth init failed:', e.message || e);
     }
@@ -51,14 +64,56 @@ const Supa = (function () {
 
   async function ensureProfile() {
     if (!currentUser) return;
-    const { data } = await client.from('profiles').select('id, display_name').eq('id', currentUser.id).maybeSingle();
+    const { data } = await client.from('profiles').select('id, display_name, kay_id, recovery_email').eq('id', currentUser.id).maybeSingle();
     if (!data) {
       let saved = null;
       try { saved = localStorage.getItem('kayphone_display_name'); } catch (e) {}
       const name = saved || ('Guest' + Math.floor(1000 + Math.random() * 9000));
-      await client.from('profiles').insert({ id: currentUser.id, display_name: name });
+      const meta = currentUser.user_metadata || {};
+      await client.from('profiles').insert({ id: currentUser.id, display_name: name, kay_id: meta.kay_id || null, recovery_email: meta.recovery_email || null });
       try { localStorage.setItem('kayphone_display_name', name); } catch (e) {}
     }
+  }
+
+  async function signUpKay(kayId, password, recoveryEmail) {
+    if (!client) return { error: new Error('Connect Supabase before creating a Kay ID.') };
+    const clean = cleanKayId(kayId);
+    if (!validKayId(clean)) return { error: new Error('Kay ID must look like name.kay and use 3–24 safe characters.') };
+    if (typeof password !== 'string' || password.length < 8) return { error: new Error('Password must be at least 8 characters.') };
+    const email = String(recoveryEmail || '').trim().toLowerCase();
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) return { error: new Error('Enter a valid recovery email or leave it blank.') };
+    const { data, error } = await client.auth.signUp({
+      email: kayAuthEmail(clean),
+      password: password,
+      options: { data: { kay_id: clean, recovery_email: email || null } }
+    });
+    if (error) return { error: error };
+    if (!data.user) return { error: new Error('Kay ID could not be created.') };
+    currentUser = data.user;
+    if (data.session) await ensureProfile();
+    return { user: data.user, session: data.session, needsConfirmation: !data.session };
+  }
+
+  async function signInKay(kayId, password) {
+    if (!client) return { error: new Error('Connect Supabase before signing in.') };
+    const clean = cleanKayId(kayId);
+    if (!validKayId(clean)) return { error: new Error('Enter your Kay ID in the form name.kay.') };
+    const result = await client.auth.signInWithPassword({ email: kayAuthEmail(clean), password: password });
+    if (result.error) return result;
+    currentUser = result.data.user;
+    await ensureProfile();
+    return result;
+  }
+
+  async function signOutKay() {
+    if (client) await client.auth.signOut();
+    currentUser = null;
+  }
+
+  async function getAccount() {
+    if (!client || !currentUser || currentUser.is_anonymous) return null;
+    const { data } = await client.from('profiles').select('id, display_name, kay_id, recovery_email, created_at').eq('id', currentUser.id).maybeSingle();
+    return data || null;
   }
 
   async function getDisplayName() {
@@ -202,6 +257,11 @@ const Supa = (function () {
     getUser: function () { return currentUser; },
     getDisplayName: getDisplayName,
     setDisplayName: setDisplayName,
+    signUpKay: signUpKay,
+    signInKay: signInKay,
+    signOutKay: signOutKay,
+    getAccount: getAccount,
+    validKayId: validKayId,
     notes: userTable('notes'),
     reminders: userTable('reminders'),
     calendarEvents: userTable('calendar_events'),

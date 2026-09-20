@@ -163,6 +163,7 @@ button { -webkit-appearance:none; }
 .app-item.jiggle { animation:jiggle 0.3s infinite; }
 @keyframes jiggle { 0%,100%{transform:rotate(0deg);} 25%{transform:rotate(-2deg);} 75%{transform:rotate(2deg);} }
 .app-icon { width:100%; max-width:60px; aspect-ratio:1; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:28px; position:relative; box-shadow:0 4px 15px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.15); transition:transform 0.2s var(--spring-bounce); }
+.app-item { cursor:pointer; }
 .app-icon::after { content:''; position:absolute; inset:0; border-radius:inherit; box-shadow:inset 0 -8px 14px rgba(0,0,0,0.10); pointer-events:none; }
 .app-name { font-size:10.5px; font-weight:500; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,0.6); text-align:center; width:100%; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 2px; }
 .app-badge { position:absolute; top:-4px; right:-4px; min-width:18px; height:18px; background:var(--ios-red); color:#fff; font-size:10px; font-weight:700; border-radius:9px; display:flex; align-items:center; justify-content:center; padding:0 5px; border:2px solid rgba(0,0,0,0.3); z-index:2; }
@@ -471,3 +472,28 @@ input:focus-visible, textarea:focus-visible, button:focus-visible, [role="button
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration:0.001ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:0.001ms !important; }
 }
+
+/* Kay ID account gate */
+.account-gate { position:absolute; inset:0; z-index:5000; display:none; align-items:center; justify-content:center; padding:22px; background:radial-gradient(circle at 50% 20%,rgba(94,92,230,.30),rgba(0,0,0,.96) 56%); backdrop-filter:blur(28px); overflow:auto; }
+.account-gate.open { display:flex; }
+.account-card { width:min(100%,350px); padding:26px 22px 20px; border:1px solid rgba(255,255,255,.12); border-radius:28px; background:rgba(24,24,34,.88); box-shadow:0 24px 80px rgba(0,0,0,.5); }
+.account-logo { width:56px; height:56px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border-radius:18px; background:linear-gradient(135deg,var(--ios-blue),var(--ios-purple)); color:#fff; font-size:30px; font-weight:800; box-shadow:0 12px 30px rgba(10,132,255,.28); }
+.account-heading { text-align:center; color:#fff; font-size:22px; font-weight:750; letter-spacing:-.3px; }
+.account-subheading { margin:8px auto 22px; max-width:280px; color:var(--ios-text-secondary); text-align:center; font-size:13px; line-height:1.45; }
+.account-label { display:block; margin:12px 0 7px; color:var(--ios-text-secondary); font-size:12px; font-weight:600; }
+.account-label span { color:var(--ios-text-tertiary); font-weight:400; }
+.account-input { width:100%; padding:12px 13px; color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:12px; outline:none; font-size:15px; }
+.account-input:focus { border-color:var(--ios-blue); box-shadow:0 0 0 3px rgba(10,132,255,.18); }
+.account-input::placeholder { color:var(--ios-text-tertiary); }
+.account-error { min-height:18px; margin:10px 0 4px; color:var(--ios-red); font-size:12px; line-height:1.35; }
+.account-primary, .account-secondary, .account-offline { width:100%; border:0; border-radius:12px; padding:12px; cursor:pointer; font-size:15px; font-weight:650; }
+.account-primary { background:var(--ios-blue); color:#fff; box-shadow:0 8px 22px rgba(10,132,255,.24); }
+.account-secondary { margin-top:10px; background:rgba(255,255,255,.08); color:#fff; }
+.account-offline { margin-top:12px; background:transparent; color:var(--ios-text-tertiary); font-size:12px; font-weight:500; }
+.account-note { margin-top:16px; color:var(--ios-text-tertiary); text-align:center; font-size:10px; line-height:1.45; }
+
+/* KayWidget app wrapper */
+.widget-app-shell { position:relative; min-height:100%; height:100%; background:linear-gradient(160deg,#0d1025,#06070d 65%); overflow:hidden; }
+.widget-app-frame { position:absolute; inset:0; width:100%; height:100%; border:0; background:transparent; }
+.widget-app-loading { position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(160deg,#0d1025,#06070d); }
+.widget-app-icon { width:64px; height:64px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; border-radius:20px; background:linear-gradient(135deg,var(--ios-blue),var(--ios-purple)); color:#fff; font-size:32px; box-shadow:0 14px 35px rgba(10,132,255,.28); }

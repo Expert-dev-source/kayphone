@@ -6,20 +6,26 @@
 -- ============================================================
 
 -- ---------- PROFILES ----------
--- One row per visitor (anonymous auth user). Holds the display
--- name shown in chat. Row is created client-side on first launch.
+-- One row per Kay account. Kay ID is the public identity; auth.users.id
+-- remains the private UUID used by Row Level Security.
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null default 'Guest' check (char_length(display_name) between 1 and 40),
   created_at timestamptz not null default now()
 );
 
+alter table public.profiles add column if not exists kay_id text;
+alter table public.profiles add column if not exists recovery_email text;
+create unique index if not exists profiles_kay_id_unique_idx
+  on public.profiles (kay_id) where kay_id is not null;
+
 alter table public.profiles enable row level security;
 
 drop policy if exists "profiles are viewable by everyone" on public.profiles;
-create policy "profiles are viewable by everyone"
+drop policy if exists "users can view their own profile" on public.profiles;
+create policy "users can view their own profile"
   on public.profiles for select
-  using (true);
+  using (auth.uid() = id);
 
 drop policy if exists "users can insert their own profile" on public.profiles;
 create policy "users can insert their own profile"
@@ -80,7 +86,20 @@ create policy "users can send messages as themselves"
   with check (auth.uid() = sender_id);
 
 -- Enable Realtime so chat updates arrive live without polling.
-alter publication supabase_realtime add table public.messages;
+-- Safe to re-run: Supabase errors if a table is already in the publication.
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'messages'
+  ) then
+    alter publication supabase_realtime add table public.messages;
+  end if;
+end
+$$;
 
 -- ---------- NOTES ----------
 create table if not exists public.notes (

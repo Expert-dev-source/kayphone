@@ -97,6 +97,40 @@
     }
   }, {passive: true});
 
+  // Desktop equivalent: laptop users should be able to drag between Home pages
+  // with a normal mouse or trackpad, not only with touch events.
+  document.addEventListener('mousedown', function(e) {
+    if (!isHomeActive() || e.button !== 0) return;
+    var phone = getPhone(); if (!phone) return;
+    var rect = phone.getBoundingClientRect();
+    if (e.clientY - rect.top < 55 || e.clientY - rect.top > rect.height - 90) return;
+    psDragging = false; psDx = 0; psX = e.clientX; psY = e.clientY; psT = Date.now();
+    document.body.classList.add('kay-mouse-dragging');
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!isHomeActive() || !psT) return;
+    var dx = e.clientX - psX, dy = e.clientY - psY;
+    if (!psDragging) {
+      if (Math.abs(dx) < DIRECTION_LOCK && Math.abs(dy) < DIRECTION_LOCK) return;
+      if (Math.abs(dy) > Math.abs(dx)) { psT = 0; return; }
+      psDragging = true;
+    }
+    psDx = dx; applyDrag(dx);
+  });
+  document.addEventListener('mouseup', function(e) {
+    if (!psT) return;
+    var dx = e.clientX - psX, dt = Math.max(1, Date.now() - psT);
+    psT = 0; document.body.classList.remove('kay-mouse-dragging');
+    if (!psDragging) return;
+    psDragging = false;
+    var isFlick = Math.abs(dx) / dt > SWIPE_VELOCITY, isEnough = Math.abs(dx) > SWIPE_THRESHOLD;
+    if ((isFlick || isEnough) && Math.abs(dx) > 20) {
+      if (dx < 0 && State.homePage < State.totalPages - 1) snapTo(State.homePage + 1);
+      else if (dx > 0 && State.homePage > 0) snapTo(State.homePage - 1);
+      else snapTo(State.homePage);
+    } else snapTo(State.homePage);
+  });
+
   // Page dot clicks
   document.addEventListener('click', function(e) {
     if (e.target.classList.contains('page-dot')) {

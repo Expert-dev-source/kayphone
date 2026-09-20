@@ -697,7 +697,7 @@ document.addEventListener('click', function(e) {
   }
 
   switch(action) {
-    case 'profile':    openSubPage('Apple ID', '<div style="padding:40px;text-align:center;color:var(--ios-text-secondary);">Apple ID settings</div>', 'Settings'); break;
+    case 'profile':    openKayAccountSettings(); break;
     case 'cellular':   openSubPage('Mobile Data', '<div style="padding:16px;"><div style="background:rgba(255,255,255,0.05);border-radius:14px;padding:14px;"><div style="font-size:15px;color:#fff;">Mobile Data</div><div style="font-size:12px;color:var(--ios-green);margin-top:4px;">KayTel 5G · Strong Signal</div></div></div>', 'Settings'); break;
     case 'hotspot':    showToast('🔥', 'Personal Hotspot: Off'); break;
     case 'airplane':   showToast('✈️', 'Airplane Mode toggled'); break;

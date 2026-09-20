@@ -11,17 +11,19 @@ features that don't work yet.
 2. Open **SQL Editor** → paste in the entire contents of
    `supabase/schema.sql` → Run. This creates every table, storage
    bucket, and security policy the app needs.
-3. Go to **Authentication → Providers → Anonymous Sign-Ins** → enable it.
-   This is what lets a visitor use Notes/Messages/Photos with zero
-   login friction, while still getting a real, private, persistent
-   account.
+3. Go to **Authentication → Providers → Email** → enable password
+   sign-ins. Because this Kay-only setup does not use Resend or a custom
+   domain, disable **Confirm email** for now. KayPhone maps a public ID
+   such as `goold.kay` to a hidden internal Supabase Auth identifier; users
+   never log in with that internal value.
 4. Go to **Project Settings → API** → copy your **Project URL** and
    **anon public key** into `js/config.js`.
 5. Open `index.html` in a browser (or deploy it — see below). Done.
 
-Until step 4 is done, every real-data app (Messages, Photos, Notes,
-Reminders, Calendar, Voice Memos, Files) shows an honest "connect
-Supabase" empty state instead of crashing or faking content.
+Until step 4 is done, KayPhone remains usable as a local UI preview. Once
+Supabase is configured, the phone requires a Kay ID and password and every
+real-data app (Messages, Photos, Notes, Reminders, Calendar, Voice Memos,
+Files) uses the signed-in account instead of an anonymous session.
 
 ## What's actually real vs. what's a UI demo
 
@@ -149,6 +151,18 @@ Settings now includes a native search field that filters the live settings secti
 ## Kay AI assistant — September 2026
 
 Kay AI now opens as a full assistant panel with conversation history, quick prompts, text input, microphone input through the browser SpeechRecognition API when supported, and spoken responses through SpeechSynthesis. Its local command engine can open installed apps, report time/date/weather/battery, toggle Focus, adjust volume, toggle the flashlight, lock the phone, answer capability questions, and provide safe fallback guidance. The assistant is marked **Private by design** because this static build does not ship a secret cloud API key; a hosted model can be connected later through a server-side proxy without changing the phone UI.
+
+The desktop experience also supports visible pointer feedback on app tiles and mouse/trackpad drag gestures between Home pages. Touch gestures remain supported on phones.
+
+## KayWidget app integration — September 2026
+
+The supplied `mywidgetflow.vercel.app` widget is available as a first-class **KayWidget** app on Home page 3. It opens with a KayPhone app header and loads widget ID `1ff01cfdc900` inside a sandboxed iframe. The isolation prevents the third-party widget’s global DOM and CSS from covering the KayPhone shell or other apps. The widget host was added to the page Content-Security-Policy, and the app shows the widget’s own loading state before its external script renders.
+
+## Kay ID accounts — September 2026
+
+Configured deployments now show a Kay ID gate instead of silently creating anonymous users. A user signs up or signs in with a public ID such as `goold.kay` and a password; an optional recovery email can be saved privately on the profile, but it is not used as the login name. Supabase Auth owns the password and persistent session, while `profiles.kay_id` is protected by a unique database index and the private Auth UUID remains the owner key for Row Level Security.
+
+Sessions persist through refreshes, browser restarts, and laptop restarts because Supabase Auth stores and refreshes the session locally. A new browser/device, cleared site data, manual sign-out, or the **Erase Local Device Data** action requires sign-in again. The reset action clears local preferences and custom-app IndexedDB but does not delete cloud data. Password reset email delivery is intentionally not claimed as functional until an email provider is configured; with the current no-domain/no-Resend setup, disable Supabase **Confirm email** and treat the optional recovery email as stored recovery metadata only.
 
 ## Adding a new real feature
 

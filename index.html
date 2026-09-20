@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="css/style.css">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.open-meteo.com https://ipapi.co https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; frame-src https://www.google.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://mywidgetflow.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.open-meteo.com https://ipapi.co https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://mywidgetflow.vercel.app; frame-src https://www.google.com;">
 </head>
 <body>
 <div class="device-container">
@@ -366,6 +366,29 @@
       </div>
     </div>
 
+    <!-- KAY ID ACCOUNT GATE -->
+    <div class="account-gate" id="accountGate" role="dialog" aria-modal="true" aria-label="Kay ID account">
+      <div class="account-card">
+        <div class="account-logo">K</div>
+        <div class="account-heading" id="accountHeading">Sign in with Kay ID</div>
+        <div class="account-subheading" id="accountSubheading">Use your Kay identity on this device and across KayPhone apps.</div>
+        <form id="accountForm" autocomplete="on">
+          <label class="account-label" for="kayIdInput">Kay ID</label>
+          <input class="account-input" id="kayIdInput" name="username" type="text" placeholder="yourname.kay" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+          <label class="account-label" for="kayPasswordInput">Password</label>
+          <input class="account-input" id="kayPasswordInput" name="password" type="password" placeholder="At least 8 characters" minlength="8" required>
+          <div id="accountCreateFields" hidden>
+            <label class="account-label" for="kayRecoveryInput">Recovery email <span>(optional)</span></label>
+            <input class="account-input" id="kayRecoveryInput" name="recoveryEmail" type="email" placeholder="Only for future recovery">
+          </div>
+          <div class="account-error" id="accountError" role="alert"></div>
+          <button class="account-primary" id="accountSubmit" type="submit">Sign In</button>
+        </form>
+        <button class="account-secondary" id="accountModeToggle" type="button">Create a Kay ID</button>
+        <div class="account-note">Passwords are handled by Supabase Auth and are never stored on this device. Sessions stay active until you sign out, clear site data, or reset the device.</div>
+      </div>
+    </div>
+
     <!-- STATUS BAR -->
     <div class="status-bar" id="statusBar">
       <div class="status-left"><span class="status-time" id="statusTime">9:41</span></div>
@@ -381,6 +404,7 @@
 <script src="js/config.js"></script>
 <script src="js/security.js"></script>
 <script src="js/supabase-client.js"></script>
+<script src="js/account.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/gestures.js"></script>
 <script src="js/data.js"></script>
@@ -391,6 +415,7 @@
 <script src="js/system-ui.js"></script>
 <script src="js/app-view.js"></script>
 <script src="js/apps-core.js"></script>
+<script src="js/apps-widget.js"></script>
 <script src="js/apps-media-utility.js"></script>
 <script src="js/apps-productivity.js"></script>
 <script src="js/settings.js"></script>
