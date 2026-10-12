@@ -1,188 +1,197 @@
-# KayPhone OS — Pro Max
+# KayPhone OS
 
-An iOS-style phone UI built for a portfolio: real accounts, real
-2-way chat, real file/photo/voice storage, real weather — backed by
-Supabase. No FiveM dependency, no fake demo data standing in for
-features that don't work yet.
+**KayPhone is a polished, iOS-inspired phone experience that runs in the browser.** It combines a realistic mobile shell with Kay ID accounts, live Supabase-backed apps, Kay Social, Kay Arcade, Kay AI, a custom app ecosystem, and responsive phone/laptop interaction.
 
-## Quick start
+> **Try it locally in under five minutes:** clone the repository, open `index.html`, and optionally connect Supabase for accounts and cloud features.
 
-1. Create a free project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor** → paste in the entire contents of
-   `supabase/schema.sql` → Run. This creates every table, storage
-   bucket, and security policy the app needs.
-3. Go to **Authentication → Providers → Email** → enable password
-   sign-ins. Because this Kay-only setup does not use Resend or a custom
-   domain, disable **Confirm email** for now. KayPhone maps a public ID
-   such as `goold.kay` to a hidden internal Supabase Auth identifier; users
-   never log in with that internal value.
-4. Go to **Project Settings → API** → copy your **Project URL** and
-   **anon public key** into `js/config.js`.
-5. Open `index.html` in a browser (or deploy it — see below). Done.
+## Why KayPhone?
 
-Until step 4 is done, KayPhone remains usable as a local UI preview. Once
-Supabase is configured, the phone requires a Kay ID and password and every
-real-data app (Messages, Photos, Notes, Reminders, Calendar, Voice Memos,
-Files) uses the signed-in account instead of an anonymous session.
+KayPhone is useful as a:
 
-## What's actually real vs. what's a UI demo
+- Browser-based phone OS prototype
+- Portfolio project for front-end, UX, and Supabase work
+- Starting point for a personal mobile-web operating system
+- Demonstration of touch, mouse, responsive layout, auth, storage, Realtime, and app architecture
+- Community project that can grow through custom Kay apps and social features
 
-**Real, backed by Supabase:**
-| App | What's real |
-|---|---|
-| Messages | Live 2-way chat over Supabase Realtime. Join a room name, open the site in a second tab/device, join the same room — messages sync instantly. Public rooms by design (like a Slack channel), so it works for any visitor without you setting up contacts. |
-| Photos | Real upload to Storage, real gallery, real delete. Camera captures save here too. |
-| Camera | Real `getUserMedia` webcam feed and capture — was already real, untouched. |
-| Voice Memos | Real mic recording (`MediaRecorder`), real measured duration, uploaded to Storage. |
-| Notes | Real per-visitor CRUD, autosaves as you type, persists across visits on the same browser. |
-| Reminders | Real per-visitor CRUD. |
-| Calendar | Real per-visitor events, persisted. |
-| Files | Real listing of whatever's actually in your Storage bucket — real names, real byte sizes, real download links. |
-| Weather | Real live data from Open-Meteo, using your browser's geolocation with an IP-location fallback if you deny it. Already real before this pass — just removed the fake "72°" fallback that showed when both failed. |
-| Maps | Real Leaflet map — untouched, already real. |
+## Highlights
 
-**Intentionally left as a UI showcase, not wired to a backend:**
-| App | Why |
-|---|---|
-| Phone (dialer/calls) | An actual phone call needs a telephony provider (Twilio, etc.) — a paid service with its own account and a server component, which doesn't fit a static portfolio site. The dialer UI and a "recent calls" *log* are real interactions; the call itself is simulated. If you want this real, Twilio Voice's JS SDK is the standard path — ask and I can wire it in. |
-| Stocks | Free real-time stock APIs need a server-side proxy to keep API keys out of client JS and to survive rate limits from every visitor sharing one key. Doable, just a separate small serverless function — flag if you want it. |
-| KayBook / KayChat / KayTok / KayTube / KayGram / KayPay | Stylized visual mockups of well-known apps, in the spirit of Apple's own demo content. Not functional networks — turning any one of these into a real product is its own multi-week build, not a "wire it to a table" job. Left as-is; happy to build one out for real if you pick a specific one. |
+- **Kay ID:** users create a unique `name.kay` identity and sign in with a password.
+- **Live cloud apps:** Notes, Reminders, Calendar, Messages, Photos, Voice Memos, and Files use Supabase when configured.
+- **Kay Social:** KayBook, KayTok, KayTube, and KayGram share live posts, likes, comments, follows, and public Kay profiles.
+- **Kay Arcade:** Neon Snake, Stack Rush, and Memory Flip are playable and touch-friendly.
+- **Kay AI:** local assistant commands, chat history, voice input when supported, and speech output.
+- **Kay Store:** searchable app ecosystem with custom HTML apps running in sandboxed views.
+- **KayWidget:** external widget loaded as an isolated first-class app.
+- **Responsive interaction:** phone touch gestures, mouse/trackpad page swipes, scrolling, app views, Control Center, lock screen, and desktop pointer feedback.
 
-## Security
+## Quick start: local preview
 
-- **The anon key in `js/config.js` is meant to be public.** Every
-  Supabase client app ships it in browser JS — it's not a secret.
-  What actually protects your data is **Row Level Security**, which
-  `schema.sql` enables on every table: each visitor's Notes,
-  Reminders, Calendar, and Storage files are readable and writable
-  only by that visitor's own account (`auth.uid()`), enforced by
-  Postgres itself, not by the client code. Never put your
-  `service_role` key in this app.
-- **XSS**: every chat message, note, reminder, and file name that
-  comes from a user (yours or another visitor's) is HTML-escaped
-  before it's inserted into the page (`js/security.js`). This
-  matters most for Messages, since room content is genuinely shared
-  between strangers.
-- **Room names** are restricted to lowercase letters, numbers, `-`
-  and `_` — enforced both client-side and with a Postgres check
-  constraint, so it can't be bypassed by calling the API directly.
-- **CSP**: `index.html` ships a Content-Security-Policy meta tag
-  scoping script/style/connect sources to exactly what the app uses
-  (Supabase, Open-Meteo, ipapi.co, OpenStreetMap tiles, Google's
-  embed used by the Safari app). One known gap: it allows
-  `'unsafe-inline'` for scripts, because the existing UI relies
-  heavily on inline `onclick="..."` handlers throughout. Closing
-  that gap means migrating those to `addEventListener` calls — a
-  real but separate refactor; flag it if you want that hardened
-  further before this goes live somewhere with real user data.
-- Every Storage bucket is **private** (not public) — files are only
-  reachable via short-lived signed URLs generated per request, not
-  permanent public links.
+### Requirements
 
-## Deploying
+- A modern browser
+- Python 3, Node.js, or any static-file server
+- Supabase is optional for the visual/local preview
 
-This is a static site (HTML/CSS/JS, no build step) — any static
-host works:
-- **Netlify / Vercel**: drag-and-drop the `kayphone/` folder, or
-  connect the repo. Zero config needed.
-- **GitHub Pages**: push this folder to a repo, enable Pages on the
-  branch.
+### Run it
 
-`js/config.js` ships with your real Supabase URL and anon key in it
-— that's fine to commit (see Security above), but if you'd rather
-keep it out of git history, add `js/config.js` to `.gitignore` and
-have your host inject it, or just leave a `config.example.js` in the
-repo and keep the real one local/uploaded directly to your host.
-
-## Folder structure
-
+```bash
+git clone YOUR_REPOSITORY_URL
+cd kayphone/kayphone
+python3 -m http.server 4173
 ```
+
+Open <http://localhost:4173>.
+
+If you do not have Python, open `index.html` directly, although a local server is recommended because some browser APIs work better over HTTP.
+
+## Enable accounts and cloud features
+
+KayPhone uses **one Supabase project owned by the deployment owner**. Users do not bring their own Supabase URL or key; they create Kay IDs inside your project.
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Open **SQL Editor** and run [`supabase/schema.sql`](supabase/schema.sql).
+3. If you already ran the base schema, run [`supabase/kay-social-migration.sql`](supabase/kay-social-migration.sql) for Kay Social.
+4. Go to **Authentication → Providers → Email** and enable password sign-ins.
+5. For the current no-domain setup, disable **Confirm email**.
+6. Copy `js/config.example.js` to `js/config.js`:
+
+   ```bash
+   cp js/config.example.js js/config.js
+   ```
+
+7. Edit `js/config.js` with your Supabase **Project URL** and **anon public key**.
+8. Refresh KayPhone and create a Kay ID such as `alex.kay`.
+
+The anon key is intended to be present in browser code. **Never put a Supabase `service_role` key in this project.** Row Level Security is the protection boundary.
+
+### What is shared and what is private?
+
+Shared with authenticated KayPhone users:
+
+- KayBook, KayTok, KayTube, and KayGram posts
+- Likes, comments, follows, and public Kay IDs
+- KayChat rooms and messages, according to the room design
+
+Private to the owning Kay account:
+
+- Password and recovery email
+- Notes, Reminders, Calendar events
+- Private files, photos, and voice memos
+- Account settings and local device data
+
+## Deploy to Vercel
+
+KayPhone is a static site with no build step.
+
+1. Push the repository to GitHub.
+2. In Vercel, choose **Add New → Project**.
+3. Import the GitHub repository.
+4. Set the project root to the folder containing `index.html` (usually `kayphone`).
+5. Leave the framework preset as **Other** or **Static HTML**.
+6. Deploy.
+7. Configure `js/config.js` in the repository with your Supabase URL and anon public key, then push a new commit when you change it.
+
+Every push to the connected GitHub branch triggers a new Vercel deployment.
+
+> Vercel environment variables named `SUPABASE_URL` and `SUPABASE_ANON_KEY` do not automatically appear in this plain static browser app. The current implementation reads `window.KAYPHONE_CONFIG` from `js/config.js`. A future build step can inject environment variables if you want to keep configuration out of source files.
+
+## Home screen map
+
+| Home page | Apps |
+|---|---|
+| Page 1 | Phone, Messages, Safari, Music, KayBook, KayChat, KayTok, KayTube, KayGram, KayPay |
+| Page 2 | Photos, Camera, Maps, Weather, Calendar, Clock, Notes, Reminders |
+| Page 3 | Calculator, Voice Memos, Files, Settings, Kay Store, Health, Stocks, Kay Arcade, Kay AI, KayWidget |
+
+Swipe horizontally or use the page dots to navigate.
+
+## Feature truth
+
+### Backed by Supabase or a real browser API
+
+- Kay ID authentication and persistent sessions
+- Messages and Realtime room updates
+- Kay Social posts, likes, comments, follows, and public profiles
+- Photos and Camera capture
+- Voice Memo recording
+- Notes, Reminders, and Calendar persistence
+- Files storage and signed downloads
+- Weather via Open-Meteo and browser/IP location fallback
+- Maps via Leaflet and OpenStreetMap
+- Kay Arcade gameplay
+- Browser speech recognition/speech synthesis where supported
+
+### Intentionally local or simulated
+
+- Phone calls: the dialer and recent-call log work, but real calls require a telephony provider such as Twilio.
+- KayPay: the UI is a prototype; real payments require a payment provider, server-side controls, fraud protection, and compliance work.
+- Stocks: the screen is a prototype until a rate-limited server-side market-data source is selected.
+- Some device controls: flashlight, hardware buttons, Face ID, and similar features are browser-safe simulations.
+
+The project aims to be honest about what is functional instead of presenting scripted demo data as a real backend.
+
+## Project structure
+
+```text
 kayphone/
 ├── index.html
 ├── README.md
+├── CONTRIBUTING.md
+├── css/style.css
 ├── supabase/
-│   └── schema.sql          run this once in the Supabase SQL Editor
-├── css/
-│   └── style.css
+│   ├── schema.sql
+│   └── kay-social-migration.sql
 └── js/
-    ├── config.js            YOUR Supabase URL + anon key go here
-    ├── security.js          escapeHtml/escapeAttr — XSS-safe rendering
-    ├── supabase-client.js   client, auth, and all data-access helpers (Supa.*)
-    ├── storage.js           IndexedDB storage layer (custom-app HTML blobs)
-    ├── gestures.js          swipe/gesture detection system
-    ├── data.js              default app layout + local UI prefs (wallpaper etc.)
-    ├── navigation.js        sub-page navigation / click delegation
-    ├── status-bar.js        clock, battery, wallpaper, dynamic island
-    ├── lock-screen.js       lock/unlock, Face ID
-    ├── home-screen.js       home grid, app launcher, app switcher
-    ├── system-ui.js         spotlight, control center, notifications, passcode, weather fetch
-    ├── app-view.js          generic app window system + assistant
-    ├── apps-core.js         Phone, Messages (real chat), Safari, Music, Photos (real)
-    ├── apps-media-utility.js   Camera (real), Maps, Weather (real), Calendar (real)
-    ├── apps-productivity.js   Notes (real), Reminders (real), Calculator, Voice Memos (real), Files (real)
-    ├── settings.js          passcode change + full settings engine
-    ├── store-social.js      App Store, Stocks (demo), Games, social apps (demo)
-    ├── interactions.js      horizontal page swipe, file uploads (real), app mgmt
-    ├── boot-hardware.js     boot sequence, volume/power/hardware buttons
-    ├── ui-extras.js         notification banners, quick actions, app library
-    └── focus-recording.js   Focus modes, screen recording, haptics
+    ├── config.js              local Supabase URL + anon key
+    ├── config.example.js      safe configuration template
+    ├── security.js             escaping helpers
+    ├── supabase-client.js     auth, storage, Realtime, and social helpers
+    ├── data.js                 app catalog and local state
+    ├── home-screen.js          home pages and launcher
+    ├── apps-core.js            Phone, Messages, Safari, Music, Photos
+    ├── apps-media-utility.js   Camera, Maps, Weather, Calendar
+    ├── apps-productivity.js    Notes, Reminders, Calculator, Files
+    ├── store-social.js         Kay Store, Kay Arcade, Kay Social apps
+    ├── app-view.js             generic app views and Kay AI
+    └── settings.js              Settings and Kay ID controls
 ```
 
-## What was fixed this pass
+## Roadmap
 
-`showFocusSheet()` had an unterminated string and a dangling `+` in
-a `sheet.innerHTML` assignment, and referenced two elements
-(`#focusOptionsGrid`, `#focusTurnOff`) that were never written to
-the DOM. Since the whole app lived in one `<script>` tag, that
-syntax error broke everything defined after it — now split across
-files (see above) so one broken function can't take down the app,
-and the function itself is fixed and working.
+Good next contributions include:
 
-## Premium polish pass — September 2026
+- Kay Social media upload and image/video previews
+- Direct-message conversations separate from public rooms
+- Server-side environment-variable injection for Vercel
+- Automated browser tests in GitHub Actions
+- More Kay Arcade games and saved leaderboards
+- Accessible keyboard navigation audit
+- Offline-first sync and installable PWA support
+- Real payment and telephony integrations behind secure server APIs
 
-This pass repaired a visible Control Center markup regression that was leaving a literal input fragment on screen instead of rendering the brightness control. It also adds a theme color and page description for installed/mobile contexts, accessible labels and focus states for key controls, a keyboard-focusable Dynamic Island, a styled volume slider, improved glass/depth treatment across the shell, and `prefers-reduced-motion` support. Notification titles, bodies, icons, timestamps, and ids are now escaped before rendering so shared notification content cannot inject markup.
+## Stability pass — October 2026
 
-## Ecosystem and Settings expansion — September 2026
+The static deployment was audited by launching all 28 built-in app IDs in a phone-sized browser viewport. The pass restored missing module files that were returning 404s (`apps-media-utility.js`, `apps-productivity.js`, `gestures.js`, `status-bar.js`, `ui-extras.js`, and `focus-recording.js`), restored the Camera, Maps, Weather, Calendar, Clock, Notes, Reminders, Calculator, Voice Memos, and Files surfaces, and fixed a Clock timer cleanup error that could update a removed DOM node. JavaScript syntax checks and the full app launch audit now pass without page errors. Safari’s external Google navigation is the only expected external request in the audit.
 
-Kay Store now behaves like an ecosystem rather than a file drop: it includes searchable, categorized discovery for Productivity, Creative, Games, Social, and Utilities; curated KayPhone Originals; one-tap Add to Home actions; Open/Preview/Install/Delete flows; result counts; and metadata for uploaded HTML apps, including inferred category, version, and file size. Custom apps still run in the existing sandboxed iframe and persist through IndexedDB.
+## Suggested GitHub topics
 
-Settings now includes a native search field that filters the live settings sections, plus working device-experience panels inspired by the strongest Apple and Samsung patterns: Modes & Routines, Link to Windows, Secure Folder, Digital Wellbeing, Edge Panels, and Smart Home. These are honest local simulations with persistent toggles and action feedback, ready for deeper integrations later.
+Add these from the repository page under **About → Settings → Topics**:
 
-## Kay AI assistant — September 2026
+`javascript` `html` `css` `supabase` `vercel` `web-app` `mobile-web` `ios-ui` `browser-os` `progressive-web-app` `open-source` `kayphone`
 
-Kay AI now opens as a full assistant panel with conversation history, quick prompts, text input, microphone input through the browser SpeechRecognition API when supported, and spoken responses through SpeechSynthesis. Its local command engine can open installed apps, report time/date/weather/battery, toggle Focus, adjust volume, toggle the flashlight, lock the phone, answer capability questions, and provide safe fallback guidance. The assistant is marked **Private by design** because this static build does not ship a secret cloud API key; a hosted model can be connected later through a server-side proxy without changing the phone UI.
+## Contributing
 
-The desktop experience also supports visible pointer feedback on app tiles and mouse/trackpad drag gestures between Home pages. Touch gestures remain supported on phones.
+Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request. Bug reports and focused feature proposals are welcome.
 
-## KayWidget app integration — September 2026
+## Security
 
-The supplied `mywidgetflow.vercel.app` widget is available as a first-class **KayWidget** app on Home page 3. It opens with a KayPhone app header and loads widget ID `1ff01cfdc900` inside a sandboxed iframe. The isolation prevents the third-party widget’s global DOM and CSS from covering the KayPhone shell or other apps. The widget host was added to the page Content-Security-Policy, and the app shows the widget’s own loading state before its external script renders.
+- Never commit a Supabase `service_role` key.
+- Keep Row Level Security enabled for every user-data table.
+- Escape user-generated content before inserting it into HTML.
+- Treat third-party widgets and custom apps as untrusted content; keep them sandboxed.
+- Report a security issue privately to the repository owner rather than opening a public issue with exploit details.
 
-## Mobile scrolling and Kay Arcade — September 2026
+## License
 
-App-view bodies now explicitly support vertical touch scrolling and pinch zoom, preserve momentum scrolling on iOS-style browsers, contain overscroll, and retain a visible thin scrollbar on desktop. Kay Arcade replaces the earlier two-card placeholder with three playable Kay Originals: Neon Snake, Stack Rush, and Memory Flip. Each game has touch-friendly controls, score tracking, best-score persistence, and a polished neon surface. Kay Arcade is visible as the **Kay Arcade** icon on Home page 3 and is also listed in the Kay Store Games category.
-
-## Home page map and live Kay Social
-
-KayPhone has three horizontal Home pages. Page 1 contains Phone, Messages, Safari, Music, and the Kay social suite: KayBook, KayChat, KayTok, KayTube, KayGram, and KayPay. Page 2 contains Photos, Camera, Maps, Weather, Calendar, Clock, Notes, and Reminders. Page 3 contains Calculator, Voice Memos, Files, Settings, Kay Store, Health, Stocks, Kay Arcade, Kay AI, and KayWidget. Swipe left or right across the Home screen to change pages; the page dots at the bottom show which page is active.
-
-KayBook, KayTok, KayTube, and KayGram now use the shared live Kay Social backend. Each has a real composer, feed, likes, comments, and share-link action. KayChat already uses the existing Supabase Realtime room/messages tables. Without Supabase configuration or a Kay ID session, social apps show an honest connection state instead of fake posts; after configuration, all social records are attached to the signed-in Kay account.
-
-To enable the social backend, run the complete `supabase/schema.sql` in Supabase SQL Editor. The new section is rerunnable and creates `social_posts`, `social_likes`, `social_comments`, `social_follows`, a `social_profiles` public projection that excludes recovery emails, owner-checked RLS policies, indexes, and Realtime publication entries. Then enable Email/password authentication with **Confirm email disabled** for the current no-domain setup, set `js/config.js`, create a Kay ID, and refresh KayPhone.
-
-## Kay ID accounts — September 2026
-
-Configured deployments now show a Kay ID gate instead of silently creating anonymous users. A user signs up or signs in with a public ID such as `goold.kay` and a password; an optional recovery email can be saved privately on the profile, but it is not used as the login name. Supabase Auth owns the password and persistent session, while `profiles.kay_id` is protected by a unique database index and the private Auth UUID remains the owner key for Row Level Security.
-
-Sessions persist through refreshes, browser restarts, and laptop restarts because Supabase Auth stores and refreshes the session locally. A new browser/device, cleared site data, manual sign-out, or the **Erase Local Device Data** action requires sign-in again. The reset action clears local preferences and custom-app IndexedDB but does not delete cloud data. Password reset email delivery is intentionally not claimed as functional until an email provider is configured; with the current no-domain/no-Resend setup, disable Supabase **Confirm email** and treat the optional recovery email as stored recovery metadata only.
-
-## Adding a new real feature
-
-1. Add a table to `supabase/schema.sql` (copy the `notes` table's
-   RLS pattern for anything per-user) and re-run it.
-2. Add a helper in `js/supabase-client.js` — for a simple per-user
-   table, `userTable('your_table')` gives you `list/insert/update/remove`
-   for free.
-3. Build the UI in the matching `js/apps-*.js` file, calling
-   `Supa.yourThing.list()` etc. Always run user-supplied text
-   through `escapeHtml()` before it goes into `innerHTML`.
+No license has been selected yet. Until the repository owner adds a license file, default copyright rules apply and reuse is not automatically permitted.

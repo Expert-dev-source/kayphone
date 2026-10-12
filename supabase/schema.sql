@@ -298,6 +298,10 @@ begin
 end $$;
 
 -- Public social profile projection: never exposes recovery_email.
+alter table public.profiles add column if not exists kay_id text;
+alter table public.profiles add column if not exists recovery_email text;
+create unique index if not exists profiles_kay_id_unique_idx
+  on public.profiles (kay_id) where kay_id is not null;
 drop view if exists public.social_profiles;
 create view public.social_profiles as
   select id, kay_id, display_name
