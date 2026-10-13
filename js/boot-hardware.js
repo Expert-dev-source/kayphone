@@ -315,6 +315,7 @@ function init() {
   }
 
   setTimeout(() => showToast('👋', 'Welcome to KayPhone OS Pro Max!'), 1000);
+  setTimeout(() => { if (typeof initOnboarding === 'function') initOnboarding(); }, 900);
   // Wire up extra CC buttons
   setTimeout(addFocusToCC, 500);
   setTimeout(addScreenRecordToCC, 500);
@@ -323,4 +324,3 @@ function init() {
   if (savedFocus) setFocus(savedFocus);
   setInterval(updateWeather, 300000);
 }
-

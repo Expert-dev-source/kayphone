@@ -73,6 +73,43 @@
       <div style="position:absolute;bottom:32px;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:1.5px;font-weight:500;">KAYPHONE OS 3.0</div>
     </div>
 
+    <!-- FIRST-LAUNCH ONBOARDING -->
+    <div class="onboarding" id="onboarding" aria-hidden="true">
+      <div class="onboarding-card">
+        <div class="onboarding-progress"><span id="onboardingProgress"></span></div>
+        <div class="onboarding-slide active" data-onboarding-slide="0">
+          <div class="onboarding-orb">✦</div>
+          <div class="onboarding-kicker">WELCOME TO KAYPHONE</div>
+          <h1>Your phone.<br><span>Your space.</span></h1>
+          <p>A polished private phone experience for the web, with Kay apps, live social spaces, and tools that feel like they belong together.</p>
+        </div>
+        <div class="onboarding-slide" data-onboarding-slide="1">
+          <div class="onboarding-kicker">MAKE IT YOURS</div>
+          <h2>Choose your look</h2>
+          <p>Pick a starting wallpaper and give your boot screen a name.</p>
+          <div class="onboarding-wallpapers" id="onboardingWallpapers">
+            <button data-onboarding-wall="linear-gradient(135deg,#071a3d,#5e5ce6)"></button>
+            <button data-onboarding-wall="linear-gradient(135deg,#281044,#ff375f)"></button>
+            <button data-onboarding-wall="linear-gradient(135deg,#062b2a,#30d158)"></button>
+            <button data-onboarding-wall="linear-gradient(135deg,#261b05,#ff9f0a)"></button>
+          </div>
+          <label class="onboarding-label" for="onboardingName">Boot name</label>
+          <input class="onboarding-input" id="onboardingName" maxlength="24" value="KayPhone" placeholder="KayPhone">
+          <label class="onboarding-label" for="onboardingTag">Tagline</label>
+          <input class="onboarding-input" id="onboardingTag" maxlength="24" value="Pro Max" placeholder="Pro Max">
+        </div>
+        <div class="onboarding-slide" data-onboarding-slide="2">
+          <div class="onboarding-orb small">K</div>
+          <div class="onboarding-kicker">YOUR KAY ID</div>
+          <h2>One identity for KayPhone</h2>
+          <p>Create a unique ID such as <b>alex.kay</b>. Your account keeps your private cloud data separate from everyone else's KayPhone space.</p>
+          <div class="onboarding-feature"><span>🔒</span><div><b>Private by default</b><small>Your password and recovery email stay protected.</small></div></div>
+          <div class="onboarding-feature"><span>☁️</span><div><b>Use your space anywhere</b><small>Sign in from another device when you choose.</small></div></div>
+        </div>
+        <div class="onboarding-footer"><button class="onboarding-skip" id="onboardingSkip">Skip</button><div class="onboarding-dots" id="onboardingDots"></div><button class="onboarding-next" id="onboardingNext">Continue</button></div>
+      </div>
+    </div>
+
     <!-- SCREEN RECORDING INDICATOR -->
     <div class="rec-indicator" id="recIndicator"></div>
 
@@ -424,5 +461,7 @@
 <script src="js/boot-hardware.js"></script>
 <script src="js/ui-extras.js"></script>
 <script src="js/focus-recording.js"></script>
+<script src="js/onboarding.js"></script>
+<script>runBootSequence();</script>
 </body>
 </html>

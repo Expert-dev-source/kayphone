@@ -87,12 +87,15 @@ KayPhone is a static site with no build step.
 1. Push the repository to GitHub.
 2. In Vercel, choose **Add New → Project**.
 3. Import the GitHub repository.
-4. Set the project root to the folder containing `index.html` (usually `kayphone`).
+4. Set **Root Directory** to the folder containing `index.html`, `css/`, and `js/` (usually `kayphone`). Do not use the parent folder if it only contains the repository folder.
 5. Leave the framework preset as **Other** or **Static HTML**.
-6. Deploy.
-7. Configure `js/config.js` in the repository with your Supabase URL and anon public key, then push a new commit when you change it.
+6. Before testing the site, open the deployment URL followed by `/css/style.css`. It must show CSS text, not a 404 page. Also test `/js/data.js`.
+7. Deploy.
+8. Configure `js/config.js` in the repository with your Supabase URL and anon public key, then push a new commit when you change it.
 
 Every push to the connected GitHub branch triggers a new Vercel deployment.
+
+The repository includes `vercel.json` for the static project root. If the live page appears as unstyled text and the browser console reports `/css/style.css` or `/js/*.js` as 404, the Vercel **Root Directory** is wrong; set it to `kayphone`, redeploy, and purge the browser cache.
 
 > Vercel environment variables named `SUPABASE_URL` and `SUPABASE_ANON_KEY` do not automatically appear in this plain static browser app. The current implementation reads `window.KAYPHONE_CONFIG` from `js/config.js`. A future build step can inject environment variables if you want to keep configuration out of source files.
 
@@ -173,6 +176,10 @@ Good next contributions include:
 ## Stability pass — October 2026
 
 The static deployment was audited by launching all 28 built-in app IDs in a phone-sized browser viewport. The pass restored missing module files that were returning 404s (`apps-media-utility.js`, `apps-productivity.js`, `gestures.js`, `status-bar.js`, `ui-extras.js`, and `focus-recording.js`), restored the Camera, Maps, Weather, Calendar, Clock, Notes, Reminders, Calculator, Voice Memos, and Files surfaces, and fixed a Clock timer cleanup error that could update a removed DOM node. JavaScript syntax checks and the full app launch audit now pass without page errors. Safari’s external Google navigation is the only expected external request in the audit.
+
+## First-launch onboarding — October 2026
+
+New users now see a three-step welcome flow after the KayPhone boot sequence. It introduces the phone, lets them choose a starting visual theme, saves a custom boot name and tagline, and explains the Kay ID account model. The completion flag is stored locally so returning users go straight to KayPhone; clearing local device data or using a new browser shows the onboarding again. The flow is local-only and does not pretend to create an account without Supabase configuration.
 
 ## Suggested GitHub topics
 
