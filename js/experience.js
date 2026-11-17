@@ -3,7 +3,7 @@
   'use strict';
 
   var glyphs = {
-    phone:'↗',messages:'••',safari:'◈',music:'♫',kaybook:'K',kaychat:'↔',
+    space:'✳',phone:'↗',messages:'••',safari:'◈',music:'♫',kaybook:'K',kaychat:'↔',
     kaytok:'◁',kaytube:'▶',kaygram:'◎',kaypay:'₭',photos:'▦',camera:'◉',
     maps:'⌁',weather:'☼',calendar:'31',clock:'◷',notes:'≡',reminders:'✓',
     calculator:'+',voicememos:'〰',files:'▤',settings:'⚙',store:'⊞',
@@ -83,6 +83,11 @@
       '<button class="kay-quick-action" id="kayFocusButton" data-kay-action="focus" type="button" aria-pressed="false"><span class="kay-quick-symbol">◐</span><span class="kay-quick-caption">Focus</span></button>';
     widgets.parentElement.insertBefore(label, widgets);
     widgets.parentElement.insertBefore(row, widgets);
+    const card=document.createElement('button');
+    card.type='button';card.className='kay-space-home';card.dataset.kayAction='space';
+    card.innerHTML='<span class="kay-space-home-icon">✳</span><span class="kay-space-home-copy"><strong>Kay Space / Your ideas</strong><small id="kaySpaceNext">Capture something worth keeping</small></span><span class="kay-space-home-count"><span id="kaySpaceCount">0</span> TO DO ↗</span>';
+    widgets.parentElement.insertBefore(card,widgets);
+    if(window.KaySpace)KaySpace.refresh();
   }
   function mountStage() {
     var container = document.querySelector('.device-container');
@@ -97,7 +102,7 @@
       'An interface built around what you can actually do.</p>' +
       '<div class="kay-stage-rule"></div>' +
       '<div class="kay-stage-row"><span>Find an app or a note</span><button data-kay-action="search" type="button">Search ↗</button></div>' +
-      '<div class="kay-stage-row"><span>Pick up an idea</span><button data-kay-action="notes" type="button">Open Notes ↗</button></div>' +
+      '<div class="kay-stage-row"><span>Pick up an idea</span><button data-kay-action="space" type="button">Open Kay Space ↗</button></div>' +
       '<div class="kay-stage-row"><span>Set the tone</span><button data-kay-action="music" type="button">Music ↗</button></div>' +
       '<div class="kay-stage-foot" id="kayStageDate"></div>';
     container.appendChild(stage);
@@ -116,6 +121,8 @@
     panel.appendChild(foot);
   }
   var actions = [
+    {label:'Open Kay Space', desc:'Your creative board, tasks and links', keywords:'space board creative tasks', icon:'✳', action:'space'},
+    {label:'New idea', desc:'Capture a thought in Kay Space', keywords:'quick capture write', icon:'+', action:'capture'},
     {label:'Open Notes', desc:'Capture and organize ideas', keywords:'note write', icon:'≡', action:'notes'},
     {label:'Open Photos', desc:'Your actual photo library', keywords:'photo gallery image', icon:'▦', action:'photos'},
     {label:'Play music', desc:'Jump into Music', keywords:'song audio', icon:'♫', action:'music'},
@@ -222,6 +229,7 @@
     if (typeof State !== 'undefined' && State.locked) return;
     if (action === 'search') { openSearch(); return; }
     if (action === 'close-search') { closeSearch(); return; }
+    if (action === 'capture' && window.KaySpace) { KaySpace.quickCapture(); return; }
     if (action === 'focus') {
       if (typeof setFocus === 'function') setFocus(document.body.dataset.focus === 'work' ? 'off' : 'work');
       refreshStatus();
@@ -287,6 +295,7 @@
       window.openApp = function (id) { rememberApp(id); return previousOpen(id); };
     }
     clockTick();
+    if(window.KaySpace)KaySpace.refresh();
     setInterval(clockTick,20000);
   }
   window.KayExperience = { init:init, glyph:glyph, refresh:refreshStatus };
