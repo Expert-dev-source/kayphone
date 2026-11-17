@@ -19,8 +19,12 @@ jobs:
           test -s css/experience.css
           test -s manifest.webmanifest
           test -s assets/kay-os-icon.svg
-          grep -q 'src="js/experience.js"' index.html
-          grep -q 'href="css/experience.css"' index.html
+          test -s js/kay-space.js
+          test -s css/kay-space.css
+          grep -q "js/experience.js" js/ui-extras.js
+          grep -q "js/kay-space.js" js/ui-extras.js
+          grep -q "css/experience.css" js/ui-extras.js
+          grep -q "css/kay-space.css" js/ui-extras.js
           node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8'))"
       - name: Prevent accidental private-key commits
         run: |
