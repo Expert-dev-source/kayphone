@@ -258,7 +258,7 @@ function processAssistantCommand(command) {
   }
   if (cmd.includes('focus') || cmd.includes('do not disturb')) {
     const turnOff = cmd.includes('off') || cmd.includes('disable');
-    if (typeof setFocus === 'function') setFocus(turnOff ? 'none' : 'Focus');
+    if (typeof setFocus === 'function') setFocus(turnOff ? 'off' : 'work');
     return {text:turnOff ? 'Focus is off.' : 'Focus is on. I’ll keep distractions quiet.'};
   }
   if (cmd.includes('volume') && (cmd.includes('up') || cmd.includes('louder'))) { showVolume(10); return {text:'Volume increased.'}; }

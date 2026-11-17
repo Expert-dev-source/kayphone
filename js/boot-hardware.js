@@ -7,6 +7,10 @@ let powerMenuOpen = false;
 
 function runBootSequence() {
   const boot = document.getElementById('bootScreen');
+  try {
+    if (boot && sessionStorage.getItem('kayos_booted')) { boot.style.display='none'; init(); return; }
+    sessionStorage.setItem('kayos_booted','1');
+  } catch (_) {}
   const logo = document.getElementById('bootLogo');
   const ring = document.getElementById('bootRing');
   const bg   = document.getElementById('bootBg');
@@ -31,18 +35,18 @@ function runBootSequence() {
   setTimeout(function() {
     word.style.opacity = '1';
     word.style.transform = 'translateY(0)';
-  }, 800);
+  }, 500);
 
   // Phase 4: progress bar
   setTimeout(function() {
     bar.style.opacity = '1';
     setTimeout(function() { if(prog) prog.style.width = '100%'; }, 60);
-  }, 1100);
+  }, 680);
 
   // Phase 5: ring fades, logo settles
   setTimeout(function() {
     if(ring) ring.style.opacity = '0';
-  }, 2200);
+  }, 1000);
 
   // Phase 6: boot done - fade out
   setTimeout(function() {
@@ -51,8 +55,8 @@ function runBootSequence() {
     setTimeout(function() {
       boot.style.display = 'none';
       try { init(); } catch(e) { console.error('init error:', e); }
-    }, 700);
-  }, 3400);
+    }, 350);
+  }, 1400);
 }
 
 // ===================== VOLUME SYSTEM =====================
@@ -207,13 +211,14 @@ function applyBootCustomization() {
 function loadBootCustomization() {
   const name  = localStorage.getItem('kayv3_boot_name');
   const tag   = localStorage.getItem('kayv3_boot_tag');
-  const emoji = localStorage.getItem('kayv3_boot_emoji') || '📱';
+  const emoji = localStorage.getItem('kayv3_boot_emoji') || 'K';
   const logoInner = document.getElementById('bootLogoInner');
   const nameEl    = document.getElementById('bootName');
   const tagEl     = document.getElementById('bootTag');
-  if (logoInner) logoInner.textContent = emoji;
-  if (nameEl && name) nameEl.textContent = name;
-  if (tagEl  && tag)  tagEl.textContent  = tag.toUpperCase();
+  if (logoInner) { logoInner.textContent = emoji === '📱' ? 'K' : emoji; logoInner.style.background='#d5f66b';logoInner.style.color='#102016';logoInner.style.boxShadow='none'; }
+  if (nameEl) nameEl.textContent = !name || name==='KayPhone' ? 'KAY / OS' : name;
+  if (tagEl) tagEl.textContent = !tag || /^pro max$/i.test(tag) ? 'A SPACE OF YOUR OWN' : tag.toUpperCase();
+  const stamp=document.getElementById('bootWordmark');if(stamp)stamp.style.letterSpacing='-.5px';
 }
 
 function initHardwareButtons() {
@@ -303,6 +308,9 @@ function init() {
 
   renderHome();
   renderDock();
+  const defaultWallpaper='photo-1618005182384-a83a8bd57fbe';
+  if(currentWallpaper && String(currentWallpaper).includes(defaultWallpaper))currentWallpaper='linear-gradient(145deg,#203b32,#0a2019 52%,#06120e)';
+  if(typeof applyWallpaper==='function')applyWallpaper(currentWallpaper);
   if (typeof applyWallpaper === 'function') applyWallpaper(currentWallpaper);
   if (window.KayExperience) KayExperience.init();
   updateWidgetPhotos();
@@ -316,7 +324,7 @@ function init() {
     saveData();
   }
 
-  setTimeout(() => showToast('✦', 'Welcome to Kay OS'), 1000);
+  setTimeout(() => showToast('✳','Kay OS is ready'), 1000);
   setTimeout(() => { if (typeof initOnboarding === 'function') initOnboarding(); }, 900);
   // Wire up extra CC buttons
   setTimeout(addFocusToCC, 500);
