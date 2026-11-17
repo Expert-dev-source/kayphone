@@ -33,3 +33,31 @@ function applyWallpaper(url){
   const wallpaper=document.getElementById('wallpaper');
   if(wallpaper) wallpaper.style.backgroundImage=/^(?:linear-gradient|radial-gradient)\(/.test(value)?value:'url("'+value.replace(/["\\]/g,'')+'")';
 }
+
+
+// Static index.html is legacy. Load the new UI through this existing, already-linked
+// module until the document shell is migrated. Dependencies load in a known order.
+(function bootstrapKayOS(){
+  const version='20261117-2';
+  ['css/experience.css','css/kay-space.css'].forEach(file=>{
+    const link=document.createElement('link');
+    link.rel='stylesheet';link.href=file+'?v='+version;
+    document.head.append(link);
+  });
+  function load(source,next){
+    const script=document.createElement('script');
+    script.src=source+'?v='+version;
+    script.onload=next;
+    script.onerror=()=>{console.warn('[Kay OS] Experience module unavailable:',source);};
+    document.head.append(script);
+  }
+  load('js/experience.js',()=>{
+    load('js/kay-space.js',()=>{
+      // The original boot may have already called init(). Reconcile exactly once.
+      if(typeof renderHome==='function')renderHome();
+      if(typeof renderDock==='function')renderDock();
+      if(window.KayExperience)KayExperience.init();
+      if(window.KaySpace)KaySpace.refresh();
+    });
+  });
+})();
