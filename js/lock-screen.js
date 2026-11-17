@@ -1,70 +1,7 @@
-// ===== LOCK / UNLOCK =====
+// A detected face does not prove identity: require the local passcode.
 async function startUnlock() {
   if (!State.locked || State.unlocking) return;
-  State.unlocking = true;
-  haptic('medium');
-  const faceId = document.getElementById('faceIdContainer');
-  const hint   = document.getElementById('lockHint');
-  if (faceId) {
-    const arc = document.getElementById('faceArc');
-    const glow = document.getElementById('faceGlow');
-    const label = document.getElementById('faceIdLabel');
-    if (arc)   arc.style.opacity = '1';
-    if (glow)  glow.style.opacity = '1';
-    if (label) label.textContent = 'Scanning...';
-    if (label) label.style.color = 'rgba(48,209,88,0.8)';
-  }
-  if (hint)   hint.textContent = 'Looking for Face...';
-
-  // Try real Face Detection API first
-  const faceDetected = await tryRealFaceDetection();
-
-  if (faceDetected === true) {
-    // Real face confirmed — unlock directly
-    haptic('success');
-    if (faceId) {
-      const arc = document.getElementById('faceArc');
-      const glow = document.getElementById('faceGlow');
-      const label = document.getElementById('faceIdLabel');
-      const icon  = document.getElementById('faceIdIcon');
-      if (arc)   arc.style.opacity = '0';
-      if (icon)  icon.textContent = '✅';
-      if (label) { label.textContent = 'Face ID ✓'; label.style.color = 'rgba(48,209,88,0.9)'; }
-      if (glow)  { glow.style.background = 'radial-gradient(circle,rgba(48,209,88,0.3) 0%,transparent 70%)'; }
-    }
-    if (hint)   hint.textContent = 'Face ID ✓';
-    State.unlocking = false;
-    setTimeout(function() { unlockPhone(); }, 300);
-  } else if (faceDetected === 'no_face') {
-    // Camera worked but no face found
-    haptic('medium');
-    if (faceId) {
-      const arc   = document.getElementById('faceArc');
-      const label = document.getElementById('faceIdLabel');
-      const icon  = document.getElementById('faceIdIcon');
-      if (arc)   arc.style.opacity = '0';
-      if (icon)  icon.textContent = '👤';
-      if (label) { label.textContent = 'Try Again'; label.style.color = 'rgba(255,69,58,0.8)'; }
-      setTimeout(function() { if(label) { label.textContent='Face ID'; label.style.color='rgba(255,255,255,0.6)'; } if(icon) icon.textContent='👤'; }, 2000);
-    }
-    if (hint)   hint.textContent = 'Face not recognised';
-    State.unlocking = false;
-    setTimeout(function() {
-      if (hint) hint.textContent = 'Tap or Swipe Up to Unlock';
-      showLockPasscode();
-    }, 800);
-  } else {
-    // Camera not available / API not supported — fall back to passcode
-    if (faceId) {
-      const arc = document.getElementById('faceArc');
-      if (arc) arc.style.opacity = '0';
-      const label = document.getElementById('faceIdLabel');
-      if (label) { label.textContent = 'Face ID'; label.style.color = 'rgba(255,255,255,0.6)'; }
-    }
-    if (hint)   hint.textContent = 'Enter Passcode';
-    State.unlocking = false;
-    showLockPasscode();
-  }
+  showLockPasscode();
 }
 
 async function tryRealFaceDetection() {

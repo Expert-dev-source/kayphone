@@ -303,6 +303,8 @@ function init() {
 
   renderHome();
   renderDock();
+  if (typeof applyWallpaper === 'function') applyWallpaper(currentWallpaper);
+  if (window.KayExperience) KayExperience.init();
   updateWidgetPhotos();
   updateCameraThumbnail();
 
@@ -314,7 +316,7 @@ function init() {
     saveData();
   }
 
-  setTimeout(() => showToast('👋', 'Welcome to KayPhone OS Pro Max!'), 1000);
+  setTimeout(() => showToast('✦', 'Welcome to Kay OS'), 1000);
   setTimeout(() => { if (typeof initOnboarding === 'function') initOnboarding(); }, 900);
   // Wire up extra CC buttons
   setTimeout(addFocusToCC, 500);

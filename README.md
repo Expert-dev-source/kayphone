@@ -181,6 +181,21 @@ The static deployment was audited by launching all 28 built-in app IDs in a phon
 
 New users now see a three-step welcome flow after the KayPhone boot sequence. It introduces the phone, lets them choose a starting visual theme, saves a custom boot name and tagline, and explains the Kay ID account model. The completion flag is stored locally so returning users go straight to KayPhone; clearing local device data or using a new browser shows the onboarding again. The flow is local-only and does not pretend to create an account without Supabase configuration.
 
+## Kay OS refresh — November 2026
+
+This branch adds a differentiated visual system for the phone and desktop, a live home clock, status indicators, quick launch controls, command-style search, recent apps, and keyboard navigation. It also replaces the fabricated photo widget with an authenticated, signed-url preview or an explicit empty state; Focus mode suppresses KayPhone's own notifications only.
+
+### Security and capability boundaries
+
+- The browser cannot securely identify a person just because the Face Detection API sees a face. That path no longer unlocks the phone; the local passcode prompt remains. The passcode and browser storage are **not** a substitute for secure hardware authentication or Supabase Auth.
+- Supabase service-role keys, database passwords and OAuth client secrets must never enter JavaScript served to users. The public/publishable anon key of a browser Supabase client is intrinsically visible and must be constrained with Row Level Security. Keep a private key server-side if a backend is introduced.
+- Existing cloud features remain dependent on a configured Supabase project, a signed-in user and the correct tables/storage policies. No fake successful sync is shown.
+- Wi-Fi, Bluetooth, airplane mode, native calls, and hardware controls cannot be operated through this browser interface. They must be labelled as simulations until replaced with actual supported integrations.
+
+### Review checklist
+
+Open the app at mobile and desktop widths. Test lock/unlock, on-screen app launching, search via button and Ctrl/Cmd+K, keyboard selection, Notes/Music shortcuts, Focus mode, wallpaper choices, and the home photo preview in signed-out and authenticated states. Verify no production credentials were committed before merging. Keep this branch unmerged until a full browser regression suite passes.
+
 ## Suggested GitHub topics
 
 Add these from the repository page under **About → Settings → Topics**:

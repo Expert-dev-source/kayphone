@@ -1,0 +1,9 @@
+# Local secrets, certificates, and build outputs
+.env
+.env.*
+!.env.example
+js/config.local.js
+*.pem
+*.key
+node_modules/
+dist/

@@ -21,7 +21,7 @@
   }
   window.initOnboarding=function(){
     const overlay=document.getElementById('onboarding');if(!overlay)return;
-    document.querySelectorAll('[data-onboarding-wall]').forEach(button=>{button.style.background=button.dataset.onboardingWall;button.addEventListener('click',()=>{document.querySelectorAll('[data-onboarding-wall]').forEach(b=>b.style.borderColor='transparent');button.style.borderColor='#fff';const value=button.dataset.onboardingWall;document.getElementById('wallpaper').style.backgroundImage=value;localStorage.setItem('kayv3_onboarding_wallpaper',value);});});
+    document.querySelectorAll('[data-onboarding-wall]').forEach(button=>{button.style.background=button.dataset.onboardingWall;button.addEventListener('click',()=>{document.querySelectorAll('[data-onboarding-wall]').forEach(b=>b.style.borderColor='transparent');button.style.borderColor='#fff';const value=button.dataset.onboardingWall;applyWallpaper(value);});});
     const next=document.getElementById('onboardingNext');if(next)next.addEventListener('click',()=>{if(index===1){const name=(document.getElementById('onboardingName')||{}).value||'KayPhone',tag=(document.getElementById('onboardingTag')||{}).value||'Pro Max';localStorage.setItem('kayv3_boot_name',name);localStorage.setItem('kayv3_boot_tag',tag);if(typeof loadBootCustomization==='function')loadBootCustomization();}if(index<2){index++;render();}else finish();});
     const skip=document.getElementById('onboardingSkip');if(skip)skip.addEventListener('click',finish);
     open();
