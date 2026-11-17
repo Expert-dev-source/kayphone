@@ -1,0 +1,48 @@
+name: Kay OS checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check all JavaScript parses
+        run: |
+          set -eu
+          find js -type f -name '*.js' ! -name 'config.js' -print0 | xargs -0 -n1 node --check
+      - name: Check required experience assets and links
+        run: |
+          set -eu
+          test -s js/experience.js
+          test -s css/experience.css
+          test -s manifest.webmanifest
+          test -s assets/kay-os-icon.svg
+          grep -q 'src="js/experience.js"' index.html
+          grep -q 'href="css/experience.css"' index.html
+          node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8'))"
+      - name: Prevent accidental private-key commits
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),path=require('path');
+          const files=[];
+          function walk(dir){
+            for(const e of fs.readdirSync(dir,{withFileTypes:true})){
+              const p=path.join(dir,e.name);
+              if(e.isDirectory() && !['.git','node_modules'].includes(e.name))walk(p);
+              else if(e.isFile() && /\.(js|json|html|env)$/.test(e.name))files.push(p);
+            }
+          }
+          walk('.');
+          const patterns=[
+            /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
+            /SUPABASE_SERVICE_ROLE_KEY\s*[:=]\s*["'][^"']{20,}/,
+            /["'](?:sb_secret_[a-zA-Z0-9_-]{20,})["']/,
+            /["'](?:sk_live_[a-zA-Z0-9]{16,})["']/
+          ];
+          for(const f of files){
+            const src=fs.readFileSync(f,'utf8');
+            if(patterns.some(re=>re.test(src))){console.error('Potential secret in '+f);process.exitCode=1;}
+          }
+          NODE

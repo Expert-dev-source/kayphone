@@ -4,10 +4,11 @@ function buildAppHTML(app) {
   var badge = app.badge ? '<div class="app-badge">' + app.badge + '</div>' : '';
   var editing = State.editingMode ? 'editing jiggle' : '';
   var photoStyle = app.id === 'photos' ? 'color:#333;' : '';
+  var visual = window.KayExperience ? KayExperience.glyph(app) : escapeHtml(app.icon || '');
   return '<div class="app-item ' + editing + '" data-appid="' + app.id + '">' +
     (State.editingMode ? '<div class="app-delete" data-delid="' + app.id + '">×</div>' : '') +
-    '<div class="app-icon" style="background:' + app.bg + ';' + photoStyle + '">' + app.icon + badge + '</div>' +
-    '<span class="app-name">' + app.name + '</span>' +
+    '<div class="app-icon" style="background:' + app.bg + ';' + photoStyle + '">' + visual + badge + '</div>' +
+    '<span class="app-name">' + escapeHtml(app.name || '') + '</span>' +
     '</div>';
 }
 
@@ -25,7 +26,7 @@ function renderDock() {
   if (!dock) return;
   dock.innerHTML = dockApps.map(app =>
     '<div class="app-item" data-appid="' + app.id + '" data-dock="1">' +
-      '<div class="app-icon" style="background:' + app.bg + ';">' + app.icon +
+      '<div class="app-icon" style="background:' + app.bg + ';">' + (window.KayExperience ? KayExperience.glyph(app) : escapeHtml(app.icon || '')) +
         (app.badge ? '<div class="app-badge">' + app.badge + '</div>' : '') +
       '</div>' +
     '</div>'

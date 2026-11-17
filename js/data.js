@@ -51,7 +51,7 @@ if (!installedApps.some(function (app) { return app.id === 'widgetflow'; })) {
 let dockApps = installedApps.filter(a => a.dock);
 let wallpapers; try { wallpapers = JSON.parse(localStorage.getItem('kayv3_wallpapers')||'[]'); } catch(e) { wallpapers = []; }
 let currentWallpaper; try { currentWallpaper = localStorage.getItem('kayv3_wallpaper'); } catch(e) {}
-if (!currentWallpaper) currentWallpaper = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80';
+if (!currentWallpaper) currentWallpaper = 'linear-gradient(145deg,#203b32,#0a2019 52%,#06120e)';
 // Video recordings stay local (object URLs, this session only) — see
 // README "Known limitations". Everything else real content lives in
 // Supabase: photos (js/apps-core.js), notes/reminders/calendar
@@ -75,7 +75,10 @@ function showToast(icon, msg, duration=2500) {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = '<span style="font-size:18px;">' + icon + '</span><span>' + msg + '</span>';
+  if (document.body.dataset.focus === 'work') return;
+  const symbol = document.createElement('span'); symbol.style.fontSize = '18px'; symbol.textContent = String(icon || '');
+  const message = document.createElement('span'); message.textContent = String(msg || '');
+  toast.append(symbol, message);
   container.appendChild(toast);
   requestAnimationFrame(() => toast.classList.add('show'));
   setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, duration);
