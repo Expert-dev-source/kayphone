@@ -26,6 +26,12 @@ jobs:
           grep -q "css/experience.css" js/ui-extras.js
           grep -q "css/kay-space.css" js/ui-extras.js
           node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8'))"
+      - name: Install browser test runner
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Install Chromium for test runner
+        run: npx playwright install --with-deps chromium
+      - name: Test real Kay OS browser interactions
+        run: npm run test:e2e
       - name: Prevent accidental private-key commits
         run: |
           node - <<'NODE'
