@@ -35,6 +35,39 @@ function applyWallpaper(url){
 }
 
 
+
+// Upgrade the legacy first-visit and lock surfaces immediately, before unlock.
+(function upgradeShell(){
+  document.title='Kay OS — Your space, in motion';
+  const set=(id,text)=>{const el=document.getElementById(id);if(el)el.textContent=text;};
+  set('faceIdLabel','Local screen lock');
+  set('faceIdIcon','K');
+  set('lockHint','Tap to open Kay OS');
+  // The browser battery API is unavailable on many platforms; never invent 84%.
+  set('lockBatteryPct','--');
+  const welcome=document.querySelector('#onboarding [data-onboarding-slide="0"] h1');
+  if(welcome){welcome.replaceChildren();welcome.append('Ideas deserve ');const span=document.createElement('span');span.textContent='space.';welcome.append(span);}
+  const kicker=document.querySelector('#onboarding [data-onboarding-slide="0"] .onboarding-kicker');
+  if(kicker)kicker.textContent='WELCOME TO KAY OS';
+  const intro=document.querySelector('#onboarding [data-onboarding-slide="0"] p');
+  if(intro)intro.textContent='A personal web workspace for thoughts, useful apps and creative life. Start with Kay Space.';
+  const bootStamp=document.querySelector('#bootScreen > div:last-child');
+  if(bootStamp&&bootStamp.textContent.includes('KAYPHONE OS'))bootStamp.textContent='KAY / OS — THE PERSONAL WEB';
+  const label=document.getElementById('passcodeLabel');
+  if(label&&!localStorage.getItem('kayv3_passcode')){
+    const hint=document.createElement('small');
+    hint.id='kayDemoHint';
+    hint.textContent='First visit: demo screen code 123456. Local screen lock only; account sign-in is separate.';
+    hint.style.cssText='display:block;max-width:245px;text-align:center;color:#bac9b0;font-size:11px;line-height:1.5;margin:0 auto 10px';
+    label.after(hint);
+  }
+  // Save actual browser battery value when the platform supplies it.
+  if(navigator.getBattery)navigator.getBattery().then(battery=>{
+    const update=()=>set('lockBatteryPct',Math.round(battery.level*100)+'%');
+    update();battery.addEventListener('levelchange',update);
+  }).catch(()=>{});
+})();
+
 // Static index.html is legacy. Load the new UI through this existing, already-linked
 // module until the document shell is migrated. Dependencies load in a known order.
 (function bootstrapKayOS(){
