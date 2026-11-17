@@ -78,3 +78,50 @@
   .space-title{font-size:38px}
 }
 @media (prefers-reduced-motion:reduce){.space-action{transition:none}}
+
+/* Kay OS lock: bespoke identity instead of copied iPhone chrome */
+#screen-lock .lock-screen{
+  background:linear-gradient(155deg,rgba(12,35,26,.1),rgba(3,15,10,.28));
+  align-items:stretch;text-align:left;padding:112px 28px 33px;
+}
+#screen-lock .lock-screen::before{
+  content:'KAY / OS';position:absolute;left:29px;top:78px;font-size:12px;
+  color:#d5f66b;letter-spacing:2px;font-weight:900;
+}
+#screen-lock .lock-time{
+  font-size:84px;letter-spacing:-5px;font-weight:580;line-height:.94;
+  text-shadow:none;font-variant-numeric:tabular-nums;
+}
+#screen-lock .lock-date{margin:13px 0 0;color:#c6d6c2;font-size:14px;text-shadow:none}
+#screen-lock .lock-widgets{justify-content:flex-start;flex-wrap:nowrap;margin:33px 0 0;gap:9px}
+#screen-lock .lock-widget{
+  min-width:0;flex:1;padding:15px 13px;background:rgba(8,31,21,.64);
+  border:1px solid rgba(213,246,107,.22);border-radius:16px;backdrop-filter:blur(25px)
+}
+#screen-lock .lock-widget-icon{font-size:22px}
+#screen-lock .lock-widget-label{font-size:10px;letter-spacing:.2px}
+#screen-lock .lock-widget-value{font-size:23px;font-weight:650;color:#ecf1dc}
+#screen-lock #faceIdContainer{align-self:flex-start;margin:23px 0 0 !important}
+#screen-lock #faceRingOuter{border-color:rgba(213,246,107,.5) !important;background:#d5f66b !important}
+#screen-lock #faceIdIcon{color:#13271a;font-weight:850;font-family:Inter,system-ui,sans-serif;font-size:35px !important}
+#screen-lock #faceIdLabel{color:#c9d5bd !important;text-align:left;font-size:12px !important}
+#screen-lock .lock-hint{font-size:13px;color:#d5f66b;margin-bottom:18px;font-weight:700;animation:none;text-align:left}
+#screen-lock .lock-hint+div{margin:0!important;width:82px!important;background:#d5f66b!important;opacity:1!important}
+#passcodeOverlay{background:rgba(5,20,12,.94)}
+#passcodeOverlay .passcode-key{background:rgba(213,246,107,.07);border:1px solid rgba(213,246,107,.17)}
+#passcodeOverlay .passcode-key:active{background:rgba(213,246,107,.25)}
+#passcodeOverlay .passcode-dot.filled{background:#d5f66b}
+#onboarding h1{font-size:37px;letter-spacing:-2px}
+#onboarding h1 span{color:#d5f66b}
+#onboarding .onboarding-card{background:linear-gradient(155deg,#142b20,#081b13);border-color:rgba(213,246,107,.21)}
+#onboarding .onboarding-orb{background:#d5f66b;color:#0b1e13}
+#onboarding .onboarding-next{background:#d5f66b;color:#102015}
+#onboarding .onboarding-kicker{color:#d5f66b}
+#bootLogoInner{background:#d5f66b!important;color:#102016!important;box-shadow:none!important}
+#bootBg{background:radial-gradient(ellipse at 50% 42%,#223d2b,#07140c 80%)!important}
+#bootProgress{background:#d5f66b!important}
+@media(max-width:370px){
+ #screen-lock .lock-screen{padding-left:21px;padding-right:21px}
+ #screen-lock .lock-time{font-size:73px}
+ #screen-lock .lock-screen::before{left:22px}
+}
